@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+	<script type="text/javascript">
+		var G_vmlCanvasManager;
+		var CPU_Use=0; //в процентах 0 - 100
+		function getCPU_Use(){
+			var usageTotal = 0;
+ 
+			var CPUCount = System.Machine.CPUs.count;
+			for (var i = 0; i < CPUCount; i++)
+			{
+			 usageTotal += System.Machine.CPUs.item(i).usagePercentage;
+			}
+			CPU_Use = Math.min(Math.max(0, usageTotal / CPUCount), 100);
+		}
+
+		function startCanvas() {
+			var canvas = document.getElementById('smile');
+			
+			// Проверяем для IE
+			if (G_vmlCanvasManager != undefined)
+				G_vmlCanvasManager.initElement(canvas);
+			
+			// Проверяем понимает ли браузер canvas
+			if (canvas.getContext) {
+				var ctx = canvas.getContext('2d'); // Получаем 2D контекст
+				
+				// Ниже выполняем рисование
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.strokeStyle = '#FF0000'; // Цвет обводки
+			ctx.lineWidth = 3; // Ширина линии
+			ctx.fillStyle = '#00FF00'; // Цвет заливки            
+            ctx.beginPath();
+            ctx.moveTo(10, 150);
+			getCPU_Use();
+            ctx.quadraticCurveTo(65, 150 - (CPU_Use - 50), 140, 150);
+            ctx.stroke();
+ 			}
+		}
+	</script>
+    <style>
+      body {
+        width: 200px;
+        height: 200px;
+      }
+    </style>
+  </head>
+  <body onload="startCanvas();">
+	<canvas id="smile" width="200" height="200">
+		Извините у вас не поддерживается HTML5 =(
+	</canvas>
+  </body>
+</html>
