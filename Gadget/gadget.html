@@ -2,9 +2,14 @@
 <html>
   <head>
     <title></title>
+	<!--[if IE]><script src="excanvas.js"></script><![endif]-->
 	<script type="text/javascript">
 		var G_vmlCanvasManager;
 		var CPU_Use=0; //в процентах 0 - 100
+		var MEM_Use=0; //в процентах 0 - 100
+		var ctx;
+		var canvas;
+
 		function getCPU_Use(){
 			var usageTotal = 0;
  
@@ -13,11 +18,49 @@
 			{
 			 usageTotal += System.Machine.CPUs.item(i).usagePercentage;
 			}
-			CPU_Use = Math.min(Math.max(0, usageTotal / CPUCount), 100);
+			CPU_Use = (9*CPU_Use + Math.min(Math.max(0, usageTotal / CPUCount), 100))/10.;
+		}
+
+		function getMEM_Use(){
+			var totalMemory = System.Machine.totalMemory;
+			var availableMemory = System.Machine.availableMemory;
+			var memoryPercentage;
+			 
+			if((totalMemory > 0) && (totalMemory > availableMemory))
+			{
+				memoryPercentage = Math.min(100 - (availableMemory / totalMemory * 100), 100);
+			}
+			else
+			{
+				memoryPercentage = 0;
+			}			
+			MEM_Use = (9*MEM_Use + memoryPercentage)/10.;
+		}
+		
+		function loop(){
+				// Ниже выполняем рисование
+				getCPU_Use();
+				getMEM_Use();
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				ctx.beginPath();
+				ctx.arc(50, 50, 25, 0 , 2 * Math.PI, false);
+				ctx.stroke();
+				ctx.beginPath();
+				ctx.arc(150, 50, 25, 0 , 2 * Math.PI, false);
+				ctx.stroke();
+				ctx.beginPath();
+				ctx.arc(50, 50 + (MEM_Use/2 - 25), 5, 0 , 2 * Math.PI, false);
+				ctx.stroke();
+				ctx.beginPath();
+				ctx.arc(150, 50 + (MEM_Use/2 - 25), 5, 0 , 2 * Math.PI, false);
+				ctx.moveTo(50, 150);
+				ctx.quadraticCurveTo(100, 150 - (CPU_Use - 50), 150, 150);
+				ctx.stroke();
+				setTimeout(loop, 100);
 		}
 
 		function startCanvas() {
-			var canvas = document.getElementById('smile');
+			canvas = document.getElementById('smile');
 			
 			// Проверяем для IE
 			if (G_vmlCanvasManager != undefined)
@@ -25,19 +68,11 @@
 			
 			// Проверяем понимает ли браузер canvas
 			if (canvas.getContext) {
-				var ctx = canvas.getContext('2d'); // Получаем 2D контекст
-				
-				// Ниже выполняем рисование
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			ctx.strokeStyle = '#FF0000'; // Цвет обводки
-			ctx.lineWidth = 3; // Ширина линии
-			ctx.fillStyle = '#00FF00'; // Цвет заливки            
-            ctx.beginPath();
-            ctx.moveTo(10, 150);
-			getCPU_Use();
-            ctx.quadraticCurveTo(65, 150 - (CPU_Use - 50), 140, 150);
-            ctx.stroke();
- 			}
+				ctx = canvas.getContext('2d'); // Получаем 2D контекст
+				ctx.lineWidth = "2";
+				ctx.strokeStyle = "rgb(0, 0, 0)";
+				loop();	
+			}
 		}
 	</script>
     <style>
