@@ -1,12 +1,26 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <gadget>
-  <name>Hello World!</name>
+  <name>Smile</name>
   <version>1.0</version>
+  <author name="УГНТУ">
+    <info url="rusoil.net" />
+  </author>
+  <copyright>2012</copyright>
+  <description>Смайлик отображающий состояние компьютера</description>
+  <icons>
+    <!-- Иконка гаджета -->
+    <icon width="70" height="70" src="icon.png" />
+  </icons>
   <hosts>
     <host name="sidebar">
-    <base type="HTML" apiVersion="1.0.0" src="gadget.html" />
-    <permissions>full</permissions>
-    <platform minPlatformVersion="0.3" />
+      <!-- имя и тип стартового файла гаджета -->
+      <base type="HTML" apiVersion="1.0.0" src="gadget.html" />
+
+      <permissions>full</permissions>
+      <platform minPlatformVersion="0.3" />
+
+      <!-- Изображение видимое при перетаскивании гаджета на сайдбар -->
+      <defaultImage src="icon.png" />
     </host>
   </hosts>
 </gadget>

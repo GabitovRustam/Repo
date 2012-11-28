@@ -43,18 +43,12 @@
 				getMEM_Use();
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
 				ctx.beginPath();
-				ctx.arc(50, 50, 25, 0 , 2 * Math.PI, false);
+				ctx.arc(35, 35 + (MEM_Use/4 - 12), 5, 0 , 2 * Math.PI, false);
 				ctx.stroke();
 				ctx.beginPath();
-				ctx.arc(150, 50, 25, 0 , 2 * Math.PI, false);
-				ctx.stroke();
-				ctx.beginPath();
-				ctx.arc(50, 50 + (MEM_Use/2 - 25), 5, 0 , 2 * Math.PI, false);
-				ctx.stroke();
-				ctx.beginPath();
-				ctx.arc(150, 50 + (MEM_Use/2 - 25), 5, 0 , 2 * Math.PI, false);
-				ctx.moveTo(50, 150);
-				ctx.quadraticCurveTo(100, 150 - (CPU_Use - 50), 150, 150);
+				ctx.arc(65, 35 + (MEM_Use/4 - 12), 5, 0 , 2 * Math.PI, false);
+				ctx.moveTo(25, 75);
+				ctx.quadraticCurveTo(50, 80 - (CPU_Use/2 - 25), 75, 75);
 				ctx.stroke();
 				setTimeout(loop, 100);
 		}
@@ -70,20 +64,28 @@
 			if (canvas.getContext) {
 				ctx = canvas.getContext('2d'); // Получаем 2D контекст
 				ctx.lineWidth = "2";
-				ctx.strokeStyle = "rgb(0, 0, 0)";
+				ctx.strokeStyle = "black";
+				ctx.fillStyle = "black";
 				loop();	
 			}
 		}
 	</script>
     <style>
       body {
-        width: 200px;
-        height: 200px;
-      }
+        width: 100px;
+        height: 100px;
+		background-image: url(smile.jpg);
+		margin: 0px; /* Отступы вокруг элемента */
+		padding: 0px; /* Поля вокруг текста */
+	  }
+      canvas {
+ 		margin: 0px; /* Отступы вокруг элемента */
+		padding: 0px; /* Поля вокруг текста */
+     }
     </style>
   </head>
   <body onload="startCanvas();">
-	<canvas id="smile" width="200" height="200">
+	<canvas id="smile" width="100" height="100">
 		Извините у вас не поддерживается HTML5 =(
 	</canvas>
   </body>
