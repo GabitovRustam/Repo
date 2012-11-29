@@ -1,0 +1,5 @@
+excanvas.js
+gadget.html
+gadget.xml
+icon.png
+back.png
