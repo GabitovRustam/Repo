@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<gadget>
+  <name>XONETWORK</name>
+  <version>1.0</version>
+  <author name="УГНТУ">
+    <info url="rusoil.net" />
+  </author>
+  <copyright>2012</copyright>
+  <description>Крестики нолики по инету by Gleb</description>
+  <icons>
+    <!-- Иконка гаджета -->
+    <icon width="91" height="91" src="icon.png" />
+  </icons>
+  <hosts>
+    <host name="sidebar">
+      <!-- имя и тип стартового файла гаджета -->
+      <base type="HTML" apiVersion="1.0.0" src="gadget.html" />
+
+      <permissions>full</permissions>
+      <platform minPlatformVersion="0.3" />
+
+      <!-- Изображение видимое при перетаскивании гаджета на сайдбар -->
+      <defaultImage src="icon.png" />
+    </host>
+  </hosts>
+</gadget>
