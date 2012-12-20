@@ -1,0 +1,13 @@
+table
+{
+	border-collapse: collapse;
+	text-align: center;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+tr{	height: 30px; }
+
+td {	width: 30px; border: 1px solid black;
+ }
