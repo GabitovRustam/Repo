@@ -197,7 +197,7 @@
 				// Ниже выполняем рисование
 				drawField();
 				// вызовем себя же через некоторое время
-				setTimeout(Timer, 1);
+				setTimeout(Timer, 1000/60);
 		}
 		
 		function startCanvas() {
