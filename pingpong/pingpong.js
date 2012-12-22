@@ -95,8 +95,8 @@
 		// Перерасчет
 		function calc() {
 			// шар
-			ballx += bdx;
-			bally += bdy;
+			ballx += bdx*2;
+			bally += bdy*2;
 			// стенки
 			if (bally<rball)
 				bdy = -bdy;
@@ -174,7 +174,7 @@
 			
 	
 			var rightx=w, righty=h/2;												
-			if(Math.sqrt((ballx-rightx)*(ballx-rightx)+(bally-righty)*(bally-righty)) > h/2-1) /*шарик вне зоны ограничителя*/
+			if(Math.sqrt((ballx-rightx)*(ballx-rightx)+(bally-righty)*(bally-righty)) > h/2-rball) /*шарик вне зоны ограничителя*/
 			{ 	//Скорость бота .001 для предотвращения деления на 0 гдетотам
 				var Speed = 2.0001;
 				var Distx,Disty;
