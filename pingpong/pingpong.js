@@ -49,6 +49,7 @@
 			ctx.stroke();
 			ctx.beginPath();
 			ctx.arc(w-1, h/2, h/2, 0, 2 * Math.PI, false);
+			
 			ctx.stroke();
 			
 			// мяч
@@ -90,6 +91,7 @@
 				ballx = aix-r;
 		}
 		
+
 		// Перерасчет
 		function calc() {
 			// шар
@@ -151,15 +153,63 @@
 			}
 
 			// компьютер
-			aidx = 5-Math.random()*10;
-			aidy = 5-Math.random()*10;
+			var angle = Math.atan((bally-h/2)/(ballx-w+r));
+			var x=1,y=0,X,Y;
+			X=x*Math.cos(angle)-y*Math.sin(angle);
+			Y=y*Math.cos(angle)-x*Math.sin(angle);
+			//Точка куда должен идти бот
+			var px=w-r-X*h/4,py=h/2+Y*h/4;
+			/*
+			 //дебуг
+			ctx.fillText(angle, 120, 20);
+			ctx.fillText(X, 120, 40);
+			ctx.fillText(Y, 120, 60);
+			
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(w-r,h/2);
+			ctx.lineTo(px,py);
+			ctx.stroke();
+			*/
+			
+	
+			var rightx=w, righty=h/2;												
+			if(Math.sqrt((ballx-rightx)*(ballx-rightx)+(bally-righty)*(bally-righty)) > h/2-1) /*шарик вне зоны ограничителя*/
+			{ 	//Скорость бота .001 для предотвращения деления на 0 гдетотам
+				var Speed = 2.0001;
+				var Distx,Disty;
+				Distx=Math.abs(px-aix);
+				Disty=Math.abs(py-aiy);
+				if(Distx+Disty < 1) Speed = 0.1;
+				var Direction=Math.atan(Disty/Distx);
+				if(px<aix) Direction=-Direction+Math.PI;
+				if(py<aiy) Direction=-Direction;
+				aidx=Speed*Math.cos(Direction); aidy=Speed*Math.sin(Direction);
+			}
+			else 
+			{
+				var Speed = 4.0001;
+				var Distx,Disty;
+				Distx=Math.abs(ballx-aix);
+				Disty=Math.abs(bally-aiy);
+
+				var Direction=Math.atan(Disty/Distx);
+				if(ballx<aix) Direction=-Direction+Math.PI;
+				if(bally<aiy) Direction=-Direction;
+				aidx=Speed*Math.cos(Direction); aidy=Speed*Math.sin(Direction);
+			}
+							
+			//aidx = 5-Math.random()*10;
+			//aidy = 5-Math.random()*10;
 			aix += aidx;
 			aiy += aidy;
+			
 			// стенки
 			if (aix>w-rpl) {
 				aix = w-rpl;
 				aidx = 0;
 			}
+			/* стенки по Y не в учёт
 			if (aiy<rpl) {
 				aiy = rpl;
 				aidy = 0;
@@ -168,6 +218,7 @@
 				aiy = h-rpl;
 				aidy = 0;
 			}
+			*/
 			// ограничитель
 			var rast;
 			rast = Math.sqrt((aix-w)*(aix-w)+(aiy-h/2)*(aiy-h/2));
