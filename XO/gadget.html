@@ -1,0 +1,261 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+	<!--[if IE]><script src="excanvas.js"></script><![endif]-->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+	<script type="text/javascript">
+
+
+	var userid = 0;
+	var shodil = false;
+	var curturn = 0;
+	var xmlHttp; 
+	var callEvent;
+	adress = "http://xo/ajax.php"; // <--------------------- ссылка на .php
+
+	function startRequest(postData) 
+	{ 
+		createXMLHttpRequest(); 
+		xmlHttp.onreadystatechange = handleStateChange; 
+		xmlHttp.open("POST", adress, true);
+		xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		xmlHttp.send(postData);
+	}
+	
+	function createXMLHttpRequest() 
+	{ 	
+		if (window.ActiveXObject) 
+			xmlHttp = new ActiveXObject("Microsoft.XMLHTTP"); 
+		else if (window.XMLHttpRequest) 
+			xmlHttp = new XMLHttpRequest(); 
+	} 
+
+	function handleStateChange() 
+	{ 
+		if(xmlHttp.readyState == 4) 
+			if(xmlHttp.status == 200) 
+			{  //Если данные получены
+				var data = unescape(xmlHttp.responseText);
+				data = $.parseJSON(data);
+				switch(data.op)
+				{
+				case "idchoise":
+					$("body").html(data.data);
+					if(data.access)  //Если зашел, старуем, если нет, перезагружаем страницу
+					{ 
+						userid = data.id; //Присваиваем id игроку
+						curturn = data.id;
+						startCanvas();
+						callEvent = setInterval(ServerCall,2000); // Опрос сервера раз в секунду
+					}
+					else
+					{
+						ServerCall();
+						setTimeout('location.reload()', 2000);
+					}
+				break;
+				case "call":
+					if(data.turn != curturn){
+						curturn = data.turn;
+						shodil = false;
+					}
+					if(shodil && data.turn == curturn) shodil = false;
+					$("input").attr('turn',curturn);
+					XO[0][0] = data.ij00;	XO[0][1] = data.ij01;	XO[0][2] = data.ij02;
+					XO[1][0] = data.ij10;	XO[1][1] = data.ij11;	XO[1][2] = data.ij12;
+					XO[2][0] = data.ij20;	XO[2][1] = data.ij21;	XO[2][2] = data.ij22;
+					Draw();
+
+					checkField();
+				
+				break;
+				case "step":
+				//	if(data.id != userid){ //Если отправил другой игрой
+				//		XO[data.i][data.j] = data.id;
+				//	}
+				
+				break; 
+				case "restart":
+
+				break;
+				}		
+			} 
+	} 
+	
+	function idchoise(id)
+	{
+		var postData = "op=idchoise&id="+id;
+		startRequest(postData);
+	}
+	
+	function ServerCall()
+	{
+		var postData = "op=call";
+		startRequest(postData);
+		
+	}
+	
+	function ServerRestart()
+	{
+		var postData = "op=restart";
+		startRequest(postData)
+	}	
+	
+	$(document).ready(function() {
+		$("#player1").click(function() {
+			//alert("ok"); //Не работает в гаджете
+			//$(this).attr("value","okay"); //Работает в гаджете
+			idchoise(1);
+		});
+		$("#player2").click(function(){
+			idchoise(2);
+		});
+	
+	});
+
+	var G_vmlCanvasManager;
+	var ctx;
+	var canvas;
+	var h, w, dh, dw, r;
+	var XO = [[0,0,0],[0,0,0],[0,0,0]];
+	
+	function Restart(winner)
+	{
+		
+	/*	if(winner != 0)	$('body').append("Победил "+winner+" игрок!");
+		else $('body').append("Ничья!"); */
+		if(userid == 1)
+		setTimeout('ServerRestart()', 3000);
+	}
+	
+	function checkField() {
+		var i,j;
+		ctx.lineWidth = "4";
+		ctx.strokeStyle = "red";
+		for (i=0; i<3; i++) {
+			if ((XO[i][0]&XO[i][1]&XO[i][2])&&(XO[i][0]!=0)) {
+				ctx.beginPath();
+				ctx.moveTo(w/2+i*w, dh);
+				ctx.lineTo(w/2+i*w, 3*h-dh);
+				ctx.stroke();
+				Restart(XO[i][0]);
+			}
+			if ((XO[0][i]&XO[1][i]&XO[2][i])&&(XO[0][i]!=0)) {
+				ctx.beginPath();
+				ctx.moveTo(dw, h/2+i*h);
+				ctx.lineTo(3*w-dw, h/2+i*h);
+				ctx.stroke();
+				Restart(XO[0][i]);
+			}
+		}
+		if ((XO[0][0]&XO[1][1]&XO[2][2])&&(XO[0][0]!=0)) {
+			ctx.beginPath();
+			ctx.moveTo(dw, dh);
+			ctx.lineTo(3*w-dw, 3*h-dh);
+			ctx.stroke();
+			Restart(XO[0][0]);
+		}
+		if ((XO[0][2]&XO[1][1]&XO[2][0])&&(XO[1][1]!=0)) {
+			ctx.beginPath();
+			ctx.moveTo(dw,  3*h-dh);
+			ctx.lineTo(3*w-dw, dh);
+			ctx.stroke();
+			Restart(XO[0][2]);
+		}
+		var nowin = true
+		for(i=0;i<3;i++)
+		for(j=0;j<3;j++)
+		if(XO[i][j] == 0) nowin = false;
+		if(nowin) Restart(0);
+	}
+
+	function Draw() {
+			// Ниже выполняем рисование
+			ctx.lineWidth = "2";
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			var nowinner = true;
+			w = (canvas.width-1)/3;
+			h = (canvas.height-1)/3;
+			dw = w/10;
+			dh = h/10;
+			if (w>h)
+				r = h/2-dh;
+			else
+				r = w/2-dw;
+			var i, j;
+			for (i=0; i<3; i++)
+				for (j=0; j<3; j++)
+					if (XO[i][j]==1) {
+						// коментарий по просьбе глеба
+						ctx.strokeStyle = "blue";
+						ctx.beginPath();
+						ctx.moveTo(dw+i*w, dh+j*h);
+						ctx.lineTo(w-dw+i*w, h-dh+j*h);
+						ctx.stroke();
+						ctx.beginPath();
+						ctx.moveTo(dw+i*w, h-dh+j*h);
+						ctx.lineTo(w-dw+i*w, dh+j*h);
+						ctx.stroke();
+					}
+					else if (XO[i][j]==2) {
+							ctx.strokeStyle = "green";
+							ctx.beginPath();
+							ctx.arc(w/2+i*w, h/2+j*h, r, 0, 2 * Math.PI, false);
+							ctx.stroke();
+						} else nowinner = false;
+	}
+
+	function startCanvas() {
+		canvas = document.getElementById('XO');
+		
+		// Проверяем для IE
+		if (G_vmlCanvasManager != undefined)
+			G_vmlCanvasManager.initElement(canvas);
+		
+		// Проверяем понимает ли браузер canvas
+		if (canvas.getContext) {
+			ctx = canvas.getContext('2d'); // Получаем 2D контекст
+			Draw();	
+		}
+	}
+	
+	
+	function userClick(event) {
+		var i,j;
+		i = Math.floor(event.clientX/30);
+		j = Math.floor(event.clientY/30);
+		if (curturn == userid && XO[i][j]==0 && !shodil) {
+			
+			shodil = true; //Чтоб не поставил сразу два элемента
+			XO[i][j] = userid; //Рисуем сразу 
+			var query = [];
+			for(i=0;i<3;i++)
+			for(j=0;j<3;j++)
+				query.push("ij"+i.toString()+j.toString()+"="+XO[i][j]);
+			startRequest("op=step&id="+userid+"&"+query.join("&"));
+			Draw();	
+			
+		} 
+	}
+	</script>
+    <style>
+      body {
+        width: 91px;
+        height: 91px;
+		background-image: url(back.png);
+		margin: 0px; /* Отступы вокруг элемента */
+		padding: 0px; /* Поля вокруг текста */
+	  }
+      canvas {
+ 		margin: 0px; /* Отступы вокруг элемента */
+		padding: 0px; /* Поля вокруг текста */
+     }
+    </style>
+  </head>
+	<body>
+	<input type="submit" id="player1" value="Игрок 1">
+	<input type="submit" id="player2" value="Игрок 2">
+	</body>
+</html>
