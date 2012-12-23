@@ -9,7 +9,7 @@
 		// Кто последним проиграл - у того мяч при инициализации 
 		var lastLosed;
 		// Коэффициент торможения
-		var friction = 0.99;
+		var friction = 0.995;
 		//
 		var win=0,lose=0;
 		// Очистка поля
@@ -23,7 +23,7 @@
 				r = dh;
 			else
 				r = dw;
-			rball = r/4;
+			rball = r/3;
 			rpl = r/2;
 			topv = h/2 - 2*r;
 			botv = h/2 + 2*r;
