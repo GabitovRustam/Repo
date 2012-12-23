@@ -170,6 +170,8 @@
 				bdy -= 2*bdy*proekb/rast
 				bdx += (ballx-plx)*proekp/rast;
 				bdy += (bally-ply)*proekp/rast;
+				ballx = plx + (ballx-plx)/rast*(rball+rpl) + bdx;
+				bally = ply + (bally-ply)/rast*(rball+rpl) + bdy;
 			}
 
 			// компьютер
@@ -261,6 +263,8 @@
 				bdy -= 2*bdy*proekb/rast
 				bdx += (ballx-aix)*proekp/rast;
 				bdy += (bally-aiy)*proekp/rast;
+				ballx = aix + (ballx-aix)*rast/(rball+rpl) + bdx;
+				bally = aiy + (bally-aiy)*rast/(rball+rpl) + bdy;
 			}
 			// в центре c почти нулевой скоростью?
 			if (((ballx-w)*(ballx-w)+(bally-h/2)*(bally-h/2)>=(h/2-rpl)*(h/2+rball))&&
