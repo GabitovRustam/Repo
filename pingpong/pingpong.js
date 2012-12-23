@@ -163,8 +163,10 @@
 			// удар с мячом
 			rast = Math.sqrt((plx-ballx)*(plx-ballx)+(ply-bally)*(ply-bally));
 			if (rast<rball+rpl) {
-				bdx = bdx+2*pldx;
-				bdy = bdy+2*pldy;
+				var proek;
+				proek = (pldx*(ballx-plx) + pldy*(bally-ply))/rast;
+				bdx += (ballx-plx)*proek/rast;
+				bdy += (bally-ply)*proek/rast;
 			}
 
 			// компьютер
@@ -249,9 +251,16 @@
 			// удар с мячом
 			rast = Math.sqrt((aix-ballx)*(aix-ballx)+(aiy-bally)*(aiy-bally));
 			if (rast<rball+rpl) {
-				bdx = bdx+2*aidx;
-				bdy = bdy+2*aidy;
+				var proek;
+				proek = (aidx*(ballx-aix) + aidy*(bally-aiy))/rast;
+				bdx += (ballx-aix)*proek/rast;
+				bdy += (bally-aiy)*proek/rast;
 			}
+			// в центре c почти нулевой скоростью?
+			if (((ballx-w)*(ballx-w)+(bally-h/2)*(bally-h/2)>=(h/2-rpl)*(h/2+rball))&&
+				((ballx-1)*(ballx-1)+(bally-h/2)*(bally-h/2)>=(h/2-rpl)*(h/2+rball))&&
+				(bdx*bdx+bdy*bdy<0.01))
+				Init();
 		}
 
 		// Таймер
