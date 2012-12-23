@@ -8,6 +8,8 @@
 		var plx, ply, pldx, pldy, aix, aiy, aidx, aidy, ballx, bally, bdx, bdy;
 		// Кто последним проиграл - у того мяч при инициализации 
 		var lastLosed;
+		// Коэффициент торможения
+		var friction = 0.99;
 		//
 		var win=0,lose=0;
 		// Очистка поля
@@ -96,17 +98,25 @@
 
 		// Перерасчет
 		function calc() {
+			// торможение
+			bdx *= friction;
+			bdy *= friction;
 			// шар
 			ballx += bdx*2;
 			bally += bdy*2;
 			// стенки
-			if (bally<rball)
+			if (bally<rball) {
 				bdy = -bdy;
-			if (bally>h-rball)
+				bally = rball;
+			}
+			if (bally>h-rball) {
 				bdy = -bdy;
+				bally = h-rball;
+			}
 			// условия проигрыша
 			if (ballx<rball) {
 				bdx = -bdx;
+				ballx = rball;
 				if (bally>topv+rball && bally<botv-rball) {
 					lose++;
 					lastLosed = true;
@@ -116,6 +126,7 @@
 			// условия выйгрыша
 			if (ballx>w-rball) {
 				bdx = -bdx;
+				ballx = w-rball
 				if (bally>topv+rball && bally<botv-rball) {
 					win++;
 					lastLosed = false;
@@ -152,8 +163,8 @@
 			// удар с мячом
 			rast = Math.sqrt((plx-ballx)*(plx-ballx)+(ply-bally)*(ply-bally));
 			if (rast<rball+rpl) {
-				bdx = pldx;
-				bdy = pldy;
+				bdx = bdx+2*pldx;
+				bdy = bdy+2*pldy;
 			}
 
 			// компьютер
@@ -238,8 +249,8 @@
 			// удар с мячом
 			rast = Math.sqrt((aix-ballx)*(aix-ballx)+(aiy-bally)*(aiy-bally));
 			if (rast<rball+rpl) {
-				bdx = aidx;
-				bdy = aidy;
+				bdx = bdx+2*aidx;
+				bdy = bdy+2*aidy;
 			}
 		}
 
