@@ -8,7 +8,8 @@
 		var plx, ply, pldx, pldy, aix, aiy, aidx, aidy, ballx, bally, bdx, bdy;
 		// Кто последним проиграл - у того мяч при инициализации 
 		var lastLosed;
-		
+		//
+		var win=0,lose=0;
 		// Очистка поля
 		function clearField() {
 			//Перерасчитываем коэффициенты на случай, если изменились размеры
@@ -77,6 +78,7 @@
 		
 		// Инициализация новой игры
 		function Init() {
+			document.getElementById("score").innerText = win+':'+lose;
 			clearField();
 			plx = r;
 			ply = h/2;
@@ -106,6 +108,7 @@
 			if (ballx<rball) {
 				bdx = -bdx;
 				if (bally>topv+rball && bally<botv-rball) {
+					lose++;
 					lastLosed = true;
 					Init();
 				}
@@ -114,6 +117,7 @@
 			if (ballx>w-rball) {
 				bdx = -bdx;
 				if (bally>topv+rball && bally<botv-rball) {
+					win++;
 					lastLosed = false;
 					Init();
 				}
@@ -265,9 +269,10 @@
 		}
 		
 		function userClick(event) {
+
 			var my, mx;
-			my = event.clientY;
-			mx = event.clientX;
+			my = event.pageY - canvas.offsetTop;
+			mx = event.pageX - canvas.offsetLeft;
 			pldx = mx - plx;
 			pldy = my - ply;
 			ply = my;
