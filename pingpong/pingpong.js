@@ -163,10 +163,13 @@
 			// удар с мячом
 			rast = Math.sqrt((plx-ballx)*(plx-ballx)+(ply-bally)*(ply-bally));
 			if (rast<rball+rpl) {
-				var proek;
-				proek = (pldx*(ballx-plx) + pldy*(bally-ply))/rast;
-				bdx += (ballx-plx)*proek/rast;
-				bdy += (bally-ply)*proek/rast;
+				var proekp, proekb;
+				proekp = (pldx*(ballx-plx) + pldy*(bally-ply))/rast;
+				proekb = (bdx*(plx-ballx) + bdy*(ply-bally))/rast;
+				bdx -= 2*bdx*proekb/rast
+				bdy -= 2*bdy*proekb/rast
+				bdx += (ballx-plx)*proekp/rast;
+				bdy += (bally-ply)*proekp/rast;
 			}
 
 			// компьютер
@@ -251,10 +254,13 @@
 			// удар с мячом
 			rast = Math.sqrt((aix-ballx)*(aix-ballx)+(aiy-bally)*(aiy-bally));
 			if (rast<rball+rpl) {
-				var proek;
-				proek = (aidx*(ballx-aix) + aidy*(bally-aiy))/rast;
-				bdx += (ballx-aix)*proek/rast;
-				bdy += (bally-aiy)*proek/rast;
+				var proekp, proekb;
+				proekp = (aidx*(ballx-aix) + aidy*(bally-aiy))/rast;
+				proekb = (bdx*(aix-ballx) + bdy*(aiy-bally))/rast;
+				bdx -= 2*bdx*proekb/rast
+				bdy -= 2*bdy*proekb/rast
+				bdx += (ballx-aix)*proekp/rast;
+				bdy += (bally-aiy)*proekp/rast;
 			}
 			// в центре c почти нулевой скоростью?
 			if (((ballx-w)*(ballx-w)+(bally-h/2)*(bally-h/2)>=(h/2-rpl)*(h/2+rball))&&
