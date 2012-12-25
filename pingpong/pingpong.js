@@ -6,31 +6,36 @@
 		var ctx;
 		// Размеры, коэффициенты и радиус мяча для прорисовки
 		var h, w, dh, dw, r, topv, botv;
-		// Расположение и скорость игрока, компьютера, мяча
-		var pldx, pldy, aidx, aidy, bdx, bdy;
 		// Кто последним проиграл - у того мяч при инициализации 
 		var lastLosed;
 		// Коэффициент торможения
 		var friction = 0.995;
-		//
+		// Победы/Поражения
 		var win=0,lose=0;
-		
+		//Литеральная нотация player
 		var player = {
 			color: "#00A",
 			x: 10,	y: 10,	raius: 10, 
+			dx: 0, dy: 0,
 			draw: function() {
 				ctx.beginPath();
 				ctx.fillStyle = this.color;
 				ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
 				ctx.fill();
 				ctx.closePath();
+				//Вектор инерции
+				ctx.beginPath();
+				ctx.moveTo(player.x, player.y);
+				ctx.lineTo(player.x+player.dx, player.y+player.dy);
+				ctx.stroke();
 
 			}
 		};
 		
 		var bot = {
 			color: "#AA0",
-			x: 10,	y: 10,	raius: 10, 
+			x: 10,	y: 10,	raius: 10,
+			dx: 0, dy: 0,
 			draw: function() {
 				ctx.beginPath();
 				ctx.fillStyle = this.color;
@@ -43,6 +48,7 @@
 		var ball = {
 			color: "#333",
 			x: 10,	y: 10,	raius: 10, 
+			dx: 0, dy: 0,
 			draw: function() {
 				ctx.beginPath();
 				ctx.fillStyle = this.color;
@@ -100,10 +106,6 @@
 			player.draw();
 			// компьютер
 			bot.draw();
-			ctx.beginPath();
-			ctx.moveTo(player.x, player.y);
-			ctx.lineTo(player.x+pldx, player.y+pldy);
-			ctx.stroke();
 
 		}
 		
@@ -116,8 +118,8 @@
 			bot.x = w-r; 	
 			bot.y = h/2; 	
 			ball.y = h/2; 	
-			bdy = 0;
-			bdx = 0;
+			ball.dy = 0;
+			ball.dx = 0;
 			if (lastLosed)
 				ball.x = player.x+r; 
 			else 
@@ -128,23 +130,23 @@
 		// Перерасчет
 		function calc() {
 			// торможение
-			bdx *= friction;
-			bdy *= friction;
+			ball.dx *= friction;
+			ball.dy *= friction;
 			// шар
-			ball.x += bdx*2; 
-			ball.y += bdy*2;
+			ball.x += ball.dx*2; 
+			ball.y += ball.dy*2;
 			// стенки
 			if (ball.y < ball.radius) {
-				bdy = -bdy;
+				ball.dy = -ball.dy;
 				ball.y = ball.radius;
 			}
 			if (ball.y > h - ball.radius) {
-				bdy = -bdy;
+				ball.dy = -ball.dy;
 				ball.y = h - ball.radius;
 			}
 			// условия проигрыша
 			if (ball.x < ball.radius) {
-				bdx = -bdx;
+				ball.dx = -ball.dx;
 				ball.x = ball.radius;
 				if (ball.y > topv + ball.radius && ball.y < botv - ball.radius) {
 					lose++;
@@ -154,7 +156,7 @@
 			}
 			// условия выйгрыша
 			if (ball.x > w - ball.radius) {
-				bdx = -bdx;
+				ball.dx = -ball.dx;
 				ball.x = w - ball.radius;
 				if (ball.y > topv + ball.radius && ball.y < botv - ball.radius) {
 					win++;
@@ -167,15 +169,15 @@
 			// стенки
 			if (player.x < player.radius) {
 				player.x = player.radius;
-				pldx = 0;
+				player.dx = 0;
 			}
 			if (player.y < player.radius) {
 				player.y = player.radius;
-				pldy = 0;
+				player.dy = 0;
 			}
 			if (player.y > h - player.radius) {
 				player.y = h - player.radius;
-				pldy = 0;
+				player.dy = 0;
 			}
 			// ограничитель
 			var rast;
@@ -186,22 +188,24 @@
 				player.x = 1 + cosa*(h/2-player.radius);
 				sina = (player.y-h/2)/rast;
 				player.y = h/2 + sina*(h/2-player.radius);
-				pldx = 0;
-				pldy = 0;
+				player.dx = 0;
+				player.dy = 0;
 			}
 			// удар с мячом
 			rast = Math.sqrt((player.x-ball.x)*(player.x-ball.x)+(player.y-ball.y)*(player.y-ball.y));
 			if (rast<ball.radius+player.radius) {
 				var proekp, proekb;
-				proekp = (pldx*(ball.x-player.x) + pldy*(ball.y-player.y))/rast;
-				proekb = (bdx*(player.x-ball.x) + bdy*(player.y-ball.y))/rast;
-				bdx -= 2*bdx*proekb/rast
-				bdy -= 2*bdy*proekb/rast
-				bdx += (ball.x-player.x)*proekp/rast;
-				bdy += (ball.y-player.y)*proekp/rast;
-				ball.x = player.x + (ball.x-player.x)/rast*(ball.radius+player.radius) + bdx;
-				ball.y = player.y + (ball.y-player.y)/rast*(ball.radius+player.radius) + bdy;
+				proekp = (player.dx*(ball.x-player.x) + player.dy*(ball.y-player.y))/rast;
+				proekb = (ball.dx*(player.x-ball.x) + ball.dy*(player.y-ball.y))/rast;
+				ball.dx -= 2*ball.dx*proekb/rast
+				ball.dy -= 2*ball.dy*proekb/rast
+				ball.dx += (ball.x-player.x)*proekp/rast;
+				ball.dy += (ball.y-player.y)*proekp/rast;
+				ball.x = player.x + (ball.x-player.x)/rast*(ball.radius+player.radius) + ball.dx;
+				ball.y = player.y + (ball.y-player.y)/rast*(ball.radius+player.radius) + ball.dy;
 			}
+			if(ball.dx > 10) ball.dx = 10; 
+			if(ball.dy > 10) ball.dy = 10; 
 
 			// компьютер
 			var angle = Math.atan((ball.y-h/2)/(ball.x-w+r));
@@ -235,7 +239,7 @@
 				var Direction=Math.atan(Disty/Distx);
 				if(px<bot.x) Direction=-Direction+Math.PI;
 				if(py<bot.y) Direction=-Direction;
-				aidx=Speed*Math.cos(Direction); aidy=Speed*Math.sin(Direction);
+				bot.dx=Speed*Math.cos(Direction); bot.dy=Speed*Math.sin(Direction);
 			}
 			else 
 			{
@@ -247,30 +251,29 @@
 				var Direction=Math.atan(Disty/Distx);
 				if(ball.x<bot.x) Direction=-Direction+Math.PI;
 				if(ball.y<bot.y) Direction=-Direction;
-				aidx=Speed*Math.cos(Direction); aidy=Speed*Math.sin(Direction);
+				bot.dx=Speed*Math.cos(Direction); bot.dy=Speed*Math.sin(Direction);
 			}
 							
-			//aidx = 5-Math.random()*10;
-			//aidy = 5-Math.random()*10;
-			bot.x += aidx;
-			bot.y += aidy;
+			bot.x += bot.dx;
+			bot.y += bot.dy;
 			
 			// стенки
-			if (bot.x>w-player.radius) {
+			if (bot.x > w-player.radius) {
 				bot.x = w-player.radius;
-				aidx = 0;
+				bot.dx = 0;
 			}
 			/* стенки по Y не в учёт
 			if (bot.y<player.radius) {
 				bot.y = player.radius;
-				aidy = 0;
+				bot.dy = 0;
 			}
 			if (bot.y>h-player.radius) {
 				bot.y = h-player.radius;
-				aidy = 0;
+				bot.dy = 0;
 			}
 			*/
 			// ограничитель
+			/* ограничитель для бота нах нада
 			var rast;
 			rast = Math.sqrt((bot.x-w)*(bot.x-w)+(bot.y-h/2)*(bot.y-h/2));
 			if (rast>h/2-player.radius) {
@@ -279,27 +282,28 @@
 				bot.x = w + cosa*(h/2-player.radius);
 				sina = (bot.y-h/2)/rast;
 				bot.y = h/2 + sina*(h/2-player.radius);
-				aidx = 0;
-				aidy = 0;
+				bot.dx = 0;
+				bot.dy = 0;
 			}
+			*/
 			// удар с мячом
 			rast = Math.sqrt((bot.x-ball.x)*(bot.x-ball.x)+(bot.y-ball.y)*(bot.y-ball.y));
 			if (rast<ball.radius+player.radius) {
 				var proekp, proekb;
-				proekp = (aidx*(ball.x-bot.x) + aidy*(ball.y-bot.y))/rast;
-				proekb = (bdx*(bot.x-ball.x) + bdy*(bot.y-ball.y))/rast;
-				bdx -= 2*bdx*proekb/rast
-				bdy -= 2*bdy*proekb/rast
-				bdx += (ball.x-bot.x)*proekp/rast;
-				bdy += (ball.y-bot.y)*proekp/rast;
-				ball.x = bot.x + (ball.x-bot.x)*rast/(ball.radius+player.radius) + bdx;
-				ball.y = bot.y + (ball.y-bot.y)*rast/(ball.radius+player.radius) + bdy;
+				proekp = (bot.dx*(ball.x-bot.x) + bot.dy*(ball.y-bot.y))/rast;
+				proekb = (ball.dx*(bot.x-ball.x) + ball.dy*(bot.y-ball.y))/rast;
+				ball.dx -= 2*ball.dx*proekb/rast
+				ball.dy -= 2*ball.dy*proekb/rast
+				ball.dx += (ball.x-bot.x)*proekp/rast;
+				ball.dy += (ball.y-bot.y)*proekp/rast;
+				ball.x = bot.x + (ball.x-bot.x)*rast/(ball.radius+player.radius) + ball.dx;
+				ball.y = bot.y + (ball.y-bot.y)*rast/(ball.radius+player.radius) + ball.dy;
 			}
 			// в центре c почти нулевой скоростью?
-			if (((ball.x-w)*(ball.x-w)+(ball.y-h/2)*(ball.y-h/2)>=(h/2-player.radius)*(h/2+ball.radius))&&
-				((ball.x-1)*(ball.x-1)+(ball.y-h/2)*(ball.y-h/2)>=(h/2-player.radius)*(h/2+ball.radius))&&
-				(bdx*bdx+bdy*bdy<0.01))
-				Init();
+			if (ball.dx*ball.dx+ball.dy*ball.dy<0.01)
+				if(((ball.x-w)*(ball.x-w)+(ball.y-h/2)*(ball.y-h/2)>=(h/2-player.radius)*(h/2+ball.radius))&&
+				   ((ball.x-1)*(ball.x-1)+(ball.y-h/2)*(ball.y-h/2)>=(h/2-player.radius)*(h/2+ball.radius))
+				  ) Init();
 		}
 
 		// Таймер
@@ -332,8 +336,11 @@
 			var my, mx;
 			my = event.pageY - canvas.offsetTop;
 			mx = event.pageX - canvas.offsetLeft;
-			pldx = mx - player.x;
-			pldy = my - player.y;
+			player.dx = mx - player.x;
+			player.dy = my - player.y;
+			
 			player.y = my;
 			player.x = mx;
+			if(player.dx > 10) player.dx = 10;
+			if(player.dy > 10) player.dy = 10;
 		}
