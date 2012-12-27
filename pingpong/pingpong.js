@@ -12,6 +12,7 @@
 		var friction = 0.995;
 		// Победы/Поражения
 		var win=0,lose=0;
+
 		//Литеральная нотация player
 		var player = {
 			color: "#00A",
@@ -58,6 +59,28 @@
 			}
 		};
 		
+
+		// FPS
+		var previous = [];
+		
+		// Функция расчета расчета FPS
+		function computeFPS() {
+			var stats = document.getElementById("stats");
+			if (previous.length > 60) 
+			{
+				previous.splice(0, 1);
+			}
+			var start = (new Date).getTime();
+			previous.push(start);
+			var sum = 0.0000001;
+			for (var id = 0; id < previous.length - 1; id++) 
+			{
+				sum += previous[id + 1] - previous[id];
+			}
+			var diff = 1000.0 / (sum / previous.length);
+
+			stats.innerHTML = diff.toFixed() + " fps";
+		}
 		// Очистка поля
 		function clearField() {
 			//Перерасчитываем коэффициенты на случай, если изменились размеры
@@ -129,6 +152,8 @@
 
 		// Перерасчет
 		function calc() {
+			//Расчет FPS
+			computeFPS();
 			// торможение
 			ball.dx *= friction;
 			ball.dy *= friction;
@@ -213,20 +238,7 @@
 			X=x*Math.cos(angle)-y*Math.sin(angle);
 			Y=y*Math.cos(angle)-x*Math.sin(angle);
 			//Точка куда должен идти бот
-			var px=w-r-X*h/4, py=h/2+Y*h/4;
-			/*
-			 //дебуг
-			ctx.fillText(angle, 120, 20);
-			ctx.fillText(X, 120, 40);
-			ctx.fillText(Y, 120, 60);
-			
-			ctx.stroke();
-			ctx.beginPath();
-			ctx.moveTo(w-r,h/2);
-			ctx.lineTo(px,py);
-			ctx.stroke();
-			*/
-			
+			var px=w-r-X*h/4, py=h/2+Y*h/4;		
 	
 			var rightx=w, righty=h/2;												
 			if(Math.sqrt((ball.x-rightx)*(ball.x-rightx)+(ball.y-righty)*(ball.y-righty)) > h/2-ball.radius) /*шарик вне зоны ограничителя*/
@@ -332,15 +344,11 @@
 		}
 		
 		function userClick(event) {
-
 			var my, mx;
 			my = event.pageY - canvas.offsetTop;
 			mx = event.pageX - canvas.offsetLeft;
 			player.dx = mx - player.x;
 			player.dy = my - player.y;
-			
 			player.y = my;
 			player.x = mx;
-			if(player.dx > 10) player.dx = 10;
-			if(player.dy > 10) player.dy = 10;
 		}
