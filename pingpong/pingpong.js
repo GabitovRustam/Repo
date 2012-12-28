@@ -12,42 +12,61 @@
 		var friction = 0.995;
 		// Победы/Поражения
 		var win=0,lose=0;
-
+		var fpsOut;
 		//Литеральная нотация player
 		var player = {
 			color: "#00A",
 			x: 10,	y: 10,	raius: 10, 
 			dx: 0, dy: 0,
+			imageSrc: "data/klushka_blue.png",
+			imageObj: null,
 			draw: function() {
 				ctx.beginPath();
-				ctx.fillStyle = this.color;
-				ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
-				ctx.fill();
+				//ctx.fillStyle = this.color;
+				//ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+				//ctx.fill();
+				//Текстура
+				ctx.drawImage(this.imageObj,
+						this.x-this.radius,this.y-this.radius,
+						this.radius*2,this.radius*2);
 				ctx.closePath();
 				//Вектор инерции
 				ctx.beginPath();
 				ctx.moveTo(player.x, player.y);
 				ctx.lineTo(player.x+player.dx, player.y+player.dy);
 				ctx.stroke();
-
+			},
+			init: function(){
+				this.imageObj = new Image();
+				this.imageObj.src = this.imageSrc;
 			}
 		};
-		
+
 		var bot = {
 			color: "#AA0",
 			x: 10,	y: 10,	raius: 10,
 			dx: 0, dy: 0,
+			imageSrc: "data/klushka_red.png",
+			imageObj: null,
 			draw: function() {
 				ctx.beginPath();
-				ctx.fillStyle = this.color;
-				ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
-				ctx.fill();
+				//ctx.fillStyle = this.color;
+				//ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+				//ctx.fill();
+				//Текстура
+				ctx.drawImage(this.imageObj,
+						this.x-this.radius,this.y-this.radius,
+						this.radius*2,this.radius*2);
 				ctx.closePath();	
+			},
+			init: function(){
+				this.imageObj = new Image();
+				this.imageObj.src = this.imageSrc;
 			}
 		};
 		
 		var ball = {
-			color: "#333",
+			color: "#0A0",
 			x: 10,	y: 10,	raius: 10, 
 			dx: 0, dy: 0,
 			draw: function() {
@@ -58,29 +77,7 @@
 				ctx.closePath();	
 			}
 		};
-		
 
-		// FPS
-		var previous = [];
-		
-		// Функция расчета расчета FPS
-		function computeFPS() {
-			var stats = document.getElementById("stats");
-			if (previous.length > 60) 
-			{
-				previous.splice(0, 1);
-			}
-			var start = (new Date).getTime();
-			previous.push(start);
-			var sum = 0.0000001;
-			for (var id = 0; id < previous.length - 1; id++) 
-			{
-				sum += previous[id + 1] - previous[id];
-			}
-			var diff = 1000.0 / (sum / previous.length);
-
-			stats.innerHTML = diff.toFixed() + " fps";
-		}
 		// Очистка поля
 		function clearField() {
 			//Перерасчитываем коэффициенты на случай, если изменились размеры
@@ -92,9 +89,8 @@
 				r = dh;
 			else
 				r = dw;
-			ball.radius = r/3;   
-			player.radius = r/2; 
-			bot.radius = r/2;
+			ball.radius = r/2;   
+			player.radius = bot.radius = r; 
 			topv = h/2 - 2*r;
 			botv = h/2 + 2*r;
 			
@@ -134,6 +130,9 @@
 		
 		// Инициализация новой игры
 		function Init() {
+			fpsOut = document.getElementById('fps');
+			player.init();
+			bot.init();
 			document.getElementById("score").innerText = win+':'+lose;
 			clearField();
 			player.x = r;   
@@ -149,11 +148,21 @@
 				ball.x = bot.x-r; 
 		}
 		
-
+		//Расчет FPS
+		var filterStrength = 20;
+		var frameTime = 0, lastLoop = new Date, thisLoop;
+		function computeFPS(){
+		  var thisFrameTime = (thisLoop=new Date) - lastLoop;
+		  frameTime+= (thisFrameTime - frameTime) / filterStrength;
+		  lastLoop = thisLoop;
+		}
+		setInterval(function(){
+		  fpsOut.innerHTML = (1000/frameTime).toFixed(1) + " fps";
+		},1000);
+		
 		// Перерасчет
 		function calc() {
-			//Расчет FPS
-			computeFPS();
+
 			// торможение
 			ball.dx *= friction;
 			ball.dy *= friction;
@@ -241,7 +250,7 @@
 			var px=w-r-X*h/4, py=h/2+Y*h/4;		
 	
 			var rightx=w, righty=h/2;												
-			if(Math.sqrt((ball.x-rightx)*(ball.x-rightx)+(ball.y-righty)*(ball.y-righty)) > h/2-ball.radius) /*шарик вне зоны ограничителя*/
+			if(Math.sqrt((ball.x-rightx)*(ball.x-rightx)+(ball.y-righty)*(ball.y-righty)) > h/2) /*шарик вне зоны ограничителя*/
 			{ 	//Скорость бота .001 для предотвращения деления на 0 гдетотам
 				var Speed = 2.0001;
 				var Distx,Disty;
@@ -320,6 +329,8 @@
 
 		// Таймер
 		function Timer() {
+				//Расчет FPS
+				computeFPS();
 				// Очищаем поле
 				clearField();
 				// перерасчет всего
