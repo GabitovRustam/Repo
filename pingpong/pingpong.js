@@ -147,7 +147,7 @@
 		
 		function Ball2BallReaction(b1,b2,x1,x2,y1,y2,time){
 			//найти массы
-			var mass1 = 2;
+			var mass1 = 5;
 			var mass2 = 1;
 			//-----установить переменные начальных векторных скоростей
 			var xVel1 = b1.dx;
@@ -345,6 +345,7 @@
 			// удар с мячом
 			//player.check_ball_collision();
 			BallToBallDetection(player,ball);
+			
 	// компьютер
 			var angle = Math.atan((ball.y-h/2)/(ball.x-w+r));
 			var x=1,y=0,X,Y;
@@ -385,7 +386,8 @@
 				bot.x = w-bot.radius;
 				bot.dx = 0;
 			}
-			if(bot.y > h-bot.radius){ 
+			
+			if(bot.y > h-bot.radius || bot.y < bot.radius){ 
 				bot.y = h/2;
 			}
 			
