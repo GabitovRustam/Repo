@@ -81,9 +81,9 @@ var Engine = {
         //events
         Scene.handle_events();
         //logic
-        Scene.render();
+        this.logic();
         //render
-
+        Scene.render();
     },
 
     //Функции запуска/остановки игрового цикла
@@ -111,8 +111,8 @@ var Field = {
         this.canvas.width  = Settings.get("width");
         this.canvas.height = Settings.get("height");
         //Вместимость тайлов в окно канваса
-        this.width  = Math.floor( this.canvas.width  / this.tile_size ) -1;
-        this.height = Math.floor( this.canvas.height / this.tile_size ) -1;
+        this.width  = Math.floor( this.canvas.width  / this.tile_size );
+        this.height = Math.floor( this.canvas.height / this.tile_size );
         //this.count = this.width * this.height;
 
         if(!this.canvas.getContext){
@@ -207,14 +207,38 @@ var Scene = {
         Field.context.rect(0, 0, Field.canvas.width, Field.canvas.height);
         Field.context.fillStyle = pattern;
         Field.context.fill();
+        //Рамка
+        Field.context.strokeStyle = '#000';
+        Field.context.strokeRect(0, 0, Field.canvas.width, Field.canvas.height);
         //show_objects();
+        //Сохраняем камеру в границах
+        if( Scene.camera.x < 0 ){
+            Scene.camera.x = 0;
+        }
+        if( Scene.camera.y < 0 ){
+            Scene.camera.y = 0;
+        }
+        if( Scene.camera.x > Scene.width - Field.width ){
+            Scene.camera.x = Scene.width- Field.width;
+        }
+        if( Scene.camera.y > Scene.height - Field.height ){
+            Scene.camera.y = Scene.height - Field.height;
+        }
+
+        //Отрисовка тайлов
         var size = Field.tile_size;
-        for(var y = Scene.camera.y; y < Field.height+Scene.camera.y && y < Scene.height; y++){
-            for(var x = Scene.camera.x; x < Field.width+Scene.camera.x && x < Scene.width; x++){
-                if(Scene.tiles[y][x].type == "empty") continue;
-                Field.context.drawImage(Resource.images[Scene.tiles[y][x].type], x*size, y*size, size, size);
+        for(var y = Scene.camera.y, yloc = 0; y < Field.height + Scene.camera.y && y < Scene.height; y++, yloc++){
+            for(var x = Scene.camera.x, xloc = 0; x < Field.width + Scene.camera.x && x < Scene.width; x++, xloc++){
+                if(Scene.tiles[y][x].resourceId == "empty") continue;
+                Field.context.drawImage(Resource.images[Scene.tiles[y][x].resourceId], xloc*size, yloc*size, size, size);
             }
         }
+        //Отрисовка объектов
+        for(key in this.objects){
+            if(this.objects[key].resourceId == "empty") continue;
+            Field.context.drawImage(Resource.images[this.objects[key].resourceId], (this.objects[key].pos.x - this.camera.x) * size, (this.objects[key].pos.y - this.camera.y) * size, size, size);
+        }
+
         //update_screen();
         //cap_frame_rate();
     }

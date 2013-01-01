@@ -2,14 +2,18 @@
 var TILE_SIZE = 32; //32 пикселя размер тайла
 var MAX_FPS = 10;   //60 кадров в секунду
 var WIDTH = 800; //или 32*25
-var HEIGHT = 640; //или 32*20
+var HEIGHT = 450; //или 32*20
 var GAME_NAME = "labyrinth"
 var RESOURCE = {
     'background': 'tiles/empty.jpg', //обязательный ресурс background
     'logo' : 'logo/logo.png',
     'tak'  : 'logo/prostotak.gif',
     'wall' : 'tiles/wall.png',
-    'hren' : 'tiles/mario.png'
+    'hren' : 'tiles/mario.png',
+    'player_up' : 'tiles/player_up.png',
+    'player_down' : 'tiles/player_down.png',
+    'player_left' : 'tiles/player_left.png',
+    'player_right' : 'tiles/player_right.png'
 };
 
 window.onload = init;
@@ -27,16 +31,22 @@ function init() {
 
     //Карта 0 - свободно, 1 - стена
     var map = new Array(
-        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
-        new Array(1,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
+        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
+        new Array(1,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
+        new Array(1,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+        new Array(1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+        new Array(1,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
+        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
+        new Array(1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
+        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
+        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
+        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
     );
 
 
@@ -62,6 +72,29 @@ function init() {
     Scene.add_event(KEYCODE.aleft,'player.eventKeyLeft()');
     Scene.add_event(KEYCODE.aright,'player.eventKeyRight()');
 
+    Engine.logic = function()
+    {
+        switch(Scene.objects.player.direction){
+        case 'up': Scene.objects.player.resourceId = 'player_up'; break;
+        case 'down': Scene.objects.player.resourceId = 'player_down'; break;
+        case 'left': Scene.objects.player.resourceId = 'player_left'; break;
+        case 'right': Scene.objects.player.resourceId = 'player_right'; break;
+        }
+        //Scene.camera.add(1,1);
+        if(Scene.objects.player.pos.x - Scene.camera.x <= 1){
+            Scene.camera.add(-Field.width/3,0);
+        }
+        if(Scene.objects.player.pos.x - Scene.camera.x >= Field.width - 2){
+            Scene.camera.add(Field.width/3,0);
+        }
+        if(Scene.objects.player.pos.y - Scene.camera.y <= 1){
+            Scene.camera.add(0,-Field.height/3);
+        }
+        if(Scene.objects.player.pos.y - Scene.camera.y >= Field.height - 2){
+            Scene.camera.add(0,Field.height/3);
+        }
+    }
+
     Engine.play();
 }
 
@@ -81,7 +114,7 @@ function Tile(elem)
         interact = true;
         break;
     }
-    this.type = elem;
+    this.resourceId = elem; //Обязательный, для определения элемента ресурса
     this.interact = interact;
     this.pass = pass;
 }
