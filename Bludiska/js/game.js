@@ -163,8 +163,10 @@ function init() {
 //
 function Tile(elem)
 {
+    this.resourceId = elem; //Обязательный, для определения элемента ресурса
     var pass = true,
         interact = false;
+    //Настройки для определенного вида тайла
     switch(elem){
     case 'wall':
         pass = false;
@@ -174,7 +176,6 @@ function Tile(elem)
         break;
     }
     this.visible = false;
-    this.resourceId = elem; //Обязательный, для определения элемента ресурса
     this.interact = interact;
     this.pass = pass;
 }

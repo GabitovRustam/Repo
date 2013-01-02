@@ -200,28 +200,14 @@ var Scene = {
     },
     render : function()
     {
-        //Сохраняем камеру в границах
-        if( Scene.camera.x < 0 ){
-            Scene.camera.x = 0;
-        }
-        if( Scene.camera.y < 0 ){
-            Scene.camera.y = 0;
-        }
-        if( Scene.camera.x > Scene.width - Field.width ){
-            Scene.camera.x = Scene.width- Field.width;
-        }
-        if( Scene.camera.y > Scene.height - Field.height ){
-            Scene.camera.y = Scene.height - Field.height;
-        }
+
         //clear_screen();
         Field.context.clearRect(0, 0, Field.canvas.width, Field.canvas.height);
         //show_background();
         Field.context.drawImage(Resource.images.background,
-                           //     0, 0, Scene.width * Field.tile_size, Scene.height * Field.tile_size);
-
-                  Scene.camera.x * Field.tile_size, Scene.camera.y * Field.tile_size,
-                  Scene.width * Field.tile_size, Scene.height * Field.tile_size,
-                  0, 0, Field.canvas.width, Field.canvas.height);
+            Scene.camera.x * Field.tile_size, Scene.camera.y * Field.tile_size,
+            Scene.width * Field.tile_size, Scene.height * Field.tile_size,
+            0, 0, Field.canvas.width, Field.canvas.height);
 
         /*
         var pattern = Field.context.createPattern(Resource.images.background, 'repeat');
