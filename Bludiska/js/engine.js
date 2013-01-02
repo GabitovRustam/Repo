@@ -200,17 +200,6 @@ var Scene = {
     },
     render : function()
     {
-        //clear_screen();
-        Field.context.clearRect(0, 0, Field.canvas.width, Field.canvas.height);
-        //show_background();
-        var pattern = Field.context.createPattern(Resource.images.background, 'repeat');
-        Field.context.rect(0, 0, Field.canvas.width, Field.canvas.height);
-        Field.context.fillStyle = pattern;
-        Field.context.fill();
-        //Рамка
-        Field.context.strokeStyle = '#000';
-        Field.context.strokeRect(0, 0, Field.canvas.width, Field.canvas.height);
-        //show_objects();
         //Сохраняем камеру в границах
         if( Scene.camera.x < 0 ){
             Scene.camera.x = 0;
@@ -224,13 +213,34 @@ var Scene = {
         if( Scene.camera.y > Scene.height - Field.height ){
             Scene.camera.y = Scene.height - Field.height;
         }
+        //clear_screen();
+        Field.context.clearRect(0, 0, Field.canvas.width, Field.canvas.height);
+        //show_background();
+        Field.context.drawImage(Resource.images.background,
+                           //     0, 0, Scene.width * Field.tile_size, Scene.height * Field.tile_size);
+
+                  Scene.camera.x * Field.tile_size, Scene.camera.y * Field.tile_size,
+                  Scene.width * Field.tile_size, Scene.height * Field.tile_size,
+                  0, 0, Field.canvas.width, Field.canvas.height);
+
+        /*
+        var pattern = Field.context.createPattern(Resource.images.background, 'repeat');
+        Field.context.rect(0, 0, Field.canvas.width, Field.canvas.height);
+        Field.context.fillStyle = pattern;
+        Field.context.fill();
+        */
+        //Рамка
+        Field.context.strokeStyle = '#000';
+        Field.context.strokeRect(0, 0, Field.canvas.width, Field.canvas.height);
+        //show_objects();
+
 
         //Отрисовка тайлов
         var size = Field.tile_size;
         for(var y = Scene.camera.y, yloc = 0; y < Field.height + Scene.camera.y && y < Scene.height; y++, yloc++){
             for(var x = Scene.camera.x, xloc = 0; x < Field.width + Scene.camera.x && x < Scene.width; x++, xloc++){
-                if(Scene.tiles[y][x].resourceId == "empty") continue;
-                Field.context.drawImage(Resource.images[Scene.tiles[y][x].resourceId], xloc*size, yloc*size, size, size);
+                if(Scene.tiles[y][x].visible)
+                    Field.context.drawImage(Resource.images[Scene.tiles[y][x].resourceId], xloc*size, yloc*size, size, size);
             }
         }
         //Отрисовка объектов

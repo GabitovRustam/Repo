@@ -1,46 +1,35 @@
 function PlayerObject(pos){
-    this.resourceId = 'empty';
+    this.resourceId = 'empty'; //Обязательное
+    this.pos = new Pos(pos.x, pos.y); //Обязательная глобальная позиция
+    this.viewDist = 1; //Дальность видимости
     this.direction = 'right';
-    this.pos = new Pos(pos.x, pos.y);
-
+    this.lpos = new Pos(0,0); //Локальная позиция
+    this.delta = new Pos(0,0); //dx,dy, смещение игрока
     // переназночение евентов
     this.eventKeyUp = function() //TODO: сделать проверку на выход за пределы границ карты
     {   // стрелка вверх
-        //if(this.direction == 'up'){  //Поворот в сторону
-            this.pos.add(0, -1);
-            //Если непроходимый тайл, двигаемся обратно
-            if(!Scene.tiles[this.pos.y][this.pos.x].pass) this.pos.add(0, 1);
-
-        //}
+        this.delta.add(0, -1);
         this.direction = 'up';
     }
     this.eventKeyLeft = function()
     {   // влево
-        //if(this.direction == 'left'){
-            this.pos.add(-1, 0);
-            if(!Scene.tiles[this.pos.y][this.pos.x].pass) this.pos.add(1, 0);
-        //}
-        else this.direction = 'left';
+        this.delta.add(-1, 0);
+        this.direction = 'left';
     }
     this.eventKeyRight = function()
     {   // вправо
-        //if(this.direction == 'right'){
-            this.pos.add(1, 0);
-            if(!Scene.tiles[this.pos.y][this.pos.x].pass) this.pos.add(-1, 0);
-        //}
+        this.delta.add(1, 0);
         this.direction = 'right';
     }
     this.eventKeyDown = function()
     {   // вниз
-        //if(this.direction == 'down'){
-            this.pos.add(0, 1);
-            if(!Scene.tiles[this.pos.y][this.pos.x].pass) this.pos.add(0, -1);
-        //}
+        this.delta.add(0, 1);
         this.direction = 'down';
     }
 
     this.eventKeySpace = function(){ // пробел
         //Взаимодейтсвие с тайлом
+        this.viewDist++;
     }
 
 }
