@@ -1,13 +1,13 @@
 
-var TILE_SIZE = 32; //32 пикселя размер тайла
-var MAX_FPS = 10;   //60 кадров в секунду
-var WIDTH = 800; //или 32*25
-var HEIGHT = 450; //или 32*20
+var TILE_SIZE = 32; //размер тайла в пикселях
+var MAX_FPS = 10;   //кадров в секунду
+var WIDTH = 800; //размеры канвы в пикселях
+var HEIGHT = 450;
 var GAME_NAME = "labyrinth"
 var RESOURCE = {
+    'logo' : 'logo/logo.png',
     'background': 'tiles/background.jpg', //обязательный ресурс background
     'empty': 'tiles/empty.jpg', //для пустых клеток
-    'logo' : 'logo/logo.png',
     'tak'  : 'logo/prostotak.gif',
     'wall' : 'tiles/wall.png',
     'hren' : 'tiles/mario.png',
@@ -15,7 +15,7 @@ var RESOURCE = {
     'player_up' : 'tiles/player_up.png',
     'player_down' : 'tiles/player_down.png',
     'player_left' : 'tiles/player_left.png',
-    'player_right' : 'tiles/player_right.png'
+    'player_right' : 'tiles/player_right.png',
 };
 
 window.onload = init;
@@ -142,11 +142,11 @@ function init() {
         }
         if( Scene.camera.y < 0 ){
             Scene.camera.y = 0;
-        }
-        if( Scene.camera.x > Scene.width - Field.width ){
+        } //Scene.width > Field.width - если карта полностью влезла в окно
+        if( Scene.camera.x > Scene.width - Field.width && Scene.width > Field.width){
             Scene.camera.x = Scene.width- Field.width;
         }
-        if( Scene.camera.y > Scene.height - Field.height ){
+        if( Scene.camera.y > Scene.height - Field.height && Scene.width > Field.width){
             Scene.camera.y = Scene.height - Field.height;
         }
     }

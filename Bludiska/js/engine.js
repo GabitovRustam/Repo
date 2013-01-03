@@ -61,6 +61,7 @@ var Settings = {
 
 //Двигло
 var Engine = {
+    status : 'init',
     isPlay : false, //состояние паузы/игры
 
     init_resource : function(resource)
@@ -76,14 +77,25 @@ var Engine = {
     },
 
     loop : function(){ //игровой цикл
-        //fps
+        switch(this.status){
+        case 'load':
+            var percent;
+            if ((percent = Resource.load_percent()) == true){
+                this.status = 'play';
+            }
+            else Field.render_load(percent);
+            break;
 
-        //events
-        Scene.handle_events();
-        //logic
-        this.logic();
-        //render
-        Scene.render();
+        case 'play':
+            //TODO: прикрутить fps
+            //events
+            Scene.handle_events();
+            //logic
+            this.logic();
+            //render
+            Scene.render();
+            break;
+        }
     },
 
     //Функции запуска/остановки игрового цикла
@@ -123,6 +135,24 @@ var Field = {
 
         this.context.fillStyle = "#DDD";
         this.context.fillRect(0,0,this.canvas.width,this.canvas.height);
+    },
+
+    render_load : function(percent)
+    {
+        this.context.font = "30pt Arial";
+        this.context.lineWidth = 4;
+        //this.context.fillStyle = "#8ED6FF";
+        //this.context.strokeStyle = "black";
+        this.context.clearRect(0, 0, Field.canvas.width, Field.canvas.height);
+        this.context.textAlign = "center";
+        var str = "Грузимся... "+percent+"%";
+        this.context.strokeText(str,this.canvas.width/2,this.canvas.height/2);
+        //Прогресс бар
+        this.context.beginPath();
+        this.context.rect(this.canvas.width*0.25, this.canvas.height/2+50, percent/100 * this.canvas.width*0.5, this.canvas.height*0.10);
+        this.context.fill();
+
+        this.context.stroke();
     }
 }
 
@@ -141,21 +171,34 @@ function Pos(x, y)
 
 //Храним картинки для тайлов
 var Resource = {
-    images : {},
-
-    init : function(images)
+    resources : {},
+    _preLoad : {},
+    _preLoad_count : 0,
+    init : function(resources)
     {
+        Engine.status = 'load';
+        _pre_load = resources;
+        _pre_load_count = sizeOf(resources);
         var imgs = {};
-        for(key in images){
+        for(key in resources){
             imgs[key] = new Image;
             imgs[key].key = key;
             imgs[key].onload = function()
             {
-                Resource.images[this.key] = this;
+                Resource.resources[this.key] = this;
             }
-            imgs[key].src = images[key];
+            imgs[key].src = resources[key];
         }
-    }
+    },
+    //Возращает процент загруженных ресурсов либо true если всё загружено
+    load_percent : function(){
+        var count = sizeOf(this.resources)
+        //count = 3;
+        if(count < _pre_load_count){
+            return Math.floor(count * 100 / _pre_load_count);
+        }
+        else return true;
+    },
 }
 
 var Scene = {
@@ -191,10 +234,8 @@ var Scene = {
     //Обработка событий
     handle_events: function()
     {
-        //this.events[this.keyboardEvent.keyCode];
         if(this.keyboardEvent){
             eval('Scene.objects.' + Scene.events[Scene.keyboardEvent.keyCode]);
-            console.log(Scene.events[Scene.keyboardEvent.keyCode]);
         }
         this.keyboardEvent = null;
     },
@@ -204,35 +245,28 @@ var Scene = {
         //clear_screen();
         Field.context.clearRect(0, 0, Field.canvas.width, Field.canvas.height);
         //show_background();
-        Field.context.drawImage(Resource.images.background,
+        Field.context.drawImage(Resource.resources.background,
             Scene.camera.x * Field.tile_size, Scene.camera.y * Field.tile_size,
             Scene.width * Field.tile_size, Scene.height * Field.tile_size,
             0, 0, Field.canvas.width, Field.canvas.height);
 
-        /*
-        var pattern = Field.context.createPattern(Resource.images.background, 'repeat');
-        Field.context.rect(0, 0, Field.canvas.width, Field.canvas.height);
-        Field.context.fillStyle = pattern;
-        Field.context.fill();
-        */
         //Рамка
         Field.context.strokeStyle = '#000';
         Field.context.strokeRect(0, 0, Field.canvas.width, Field.canvas.height);
+
         //show_objects();
-
-
         //Отрисовка тайлов
         var size = Field.tile_size;
         for(var y = Scene.camera.y, yloc = 0; y < Field.height + Scene.camera.y && y < Scene.height; y++, yloc++){
             for(var x = Scene.camera.x, xloc = 0; x < Field.width + Scene.camera.x && x < Scene.width; x++, xloc++){
                 if(Scene.tiles[y][x].visible)
-                    Field.context.drawImage(Resource.images[Scene.tiles[y][x].resourceId], xloc*size, yloc*size, size, size);
+                    Field.context.drawImage(Resource.resources[Scene.tiles[y][x].resourceId], xloc*size, yloc*size, size, size);
             }
         }
         //Отрисовка объектов
         for(key in this.objects){
             if(this.objects[key].resourceId == "empty") continue;
-            Field.context.drawImage(Resource.images[this.objects[key].resourceId], (this.objects[key].pos.x - this.camera.x) * size, (this.objects[key].pos.y - this.camera.y) * size, size, size);
+            Field.context.drawImage(Resource.resources[this.objects[key].resourceId], (this.objects[key].pos.x - this.camera.x) * size, (this.objects[key].pos.y - this.camera.y) * size, size, size);
         }
 
         //update_screen();
