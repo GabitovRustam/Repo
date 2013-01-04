@@ -18,10 +18,45 @@ var RESOURCE = {
     'player_right' : 'tiles/player_right.png',
 };
 
+
 window.onload = init;
 
 
-function init() {
+
+function change_state()
+{
+    //If the state needs to be changed
+    if(nextState != STATE.NULL)
+    {
+        //Delete the current state
+        if(nextState != STATE.EXIT)
+        {
+            currentState = undefined;
+        }
+        //Change the state
+        switch(nextState)
+        {
+            case STATE.INTRO:
+                currentState = Intro;
+                break;
+            case STATE.LEVEL:
+                currentState = Level;
+                break;
+            case STATE.END:
+                currentState = End;
+                break;
+        }
+        //Change the current state ID
+        stateID = nextState;
+        //NULL the next state ID
+        nextState = STATE.NULL;
+        //Ициализация нового состояния (типа конструктора)
+        currentState.init();
+    }
+}
+
+function init()
+{
     Engine.init_resource(RESOURCE);
     Engine.init({
         width : WIDTH,
@@ -31,131 +66,13 @@ function init() {
         fps : MAX_FPS
     });
 
-    //Карта 0 - свободно, 1 - стена
-    var map = new Array(
-        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
-        new Array(1,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
-    );
-    //Определяет ресур в точке на карте
-    function resDef(x,y)
-    {
-        var elem = 'empty';
-        switch(map[y][x]){
-        case 1: elem = 'wall'; break;
-        case 2: elem = 'tak'; break;
-        }
-        return elem;
-    }
-
-    //Загрузка элементов
-    Scene.init(map);
-    for(var y = 0; y < Scene.height; y++){
-        for(var x = 0; x < Scene.width; x++){
-            //Определяем тайлы на карте
-            var elem = resDef(x,y);
-            tile = new Tile(elem);
-            Scene.set_tile(tile, new Pos(x, y));
-        }
-    }
-
-    //Загрузим игрока
-    var player = new PlayerObject(new Pos(1, 1));
-    Scene.add_object('player',player);
-    Scene.add_event(KEYCODE.aup,'player.eventKeyUp()');
-    Scene.add_event(KEYCODE.adown,'player.eventKeyDown()');
-    Scene.add_event(KEYCODE.aleft,'player.eventKeyLeft()');
-    Scene.add_event(KEYCODE.aright,'player.eventKeyRight()');
-    Scene.add_event(KEYCODE.space,'player.eventKeySpace()');
-    //Изменение тайлов от позиции pos, на расстояние viewDist, тайл определяет code
-    function view(pos,viewDist,state)
-    {
-        for(y = pos.y-viewDist; y <= pos.y+viewDist; y++){
-            for(x = pos.x-viewDist; x <= pos.x+viewDist; x++){
-                //Определяем тайлы на карте
-                if(x < 0 || y < 0) continue;
-                if(x >= Scene.width || y >= Scene.height) continue;
-                var dist = Math.sqrt((x-pos.x)*(x-pos.x)+(y-pos.y)*(y-pos.y));
-                if(dist <= viewDist)
-                    Scene.tiles[y][x].visible = state;
-            }
-        }
-    }
-
-    Engine.logic = function()
-    {
-        var lastPlayerPos = new Pos(Scene.objects.player.pos.x,Scene.objects.player.pos.y);
-        var playerPos = Scene.objects.player.pos;
-
-        //Двигаемся по заданному направлению
-        playerPos.add(Scene.objects.player.delta.x, Scene.objects.player.delta.y);
-
-        //Если непроходимый тайл, двигаемся обратно
-        if(!Scene.tiles[playerPos.y][playerPos.x].pass) playerPos.add(-Scene.objects.player.delta.x, -Scene.objects.player.delta.y);
-        Scene.objects.player.delta = new Pos(0,0);
-
-        //Закрываем старое пространство туманом
-        view(lastPlayerPos,Scene.objects.player.viewDist,false);
-        //Открываем новое пространство
-        view(playerPos,Scene.objects.player.viewDist,true);
-        //Расчитываем локальную (на экране) позицию игрока
-        Scene.objects.player.lpos.x = playerPos.x - Scene.camera.x;
-        Scene.objects.player.lpos.y = playerPos.y - Scene.camera.y;
-        //Вращает иконку игрока
-        switch(Scene.objects.player.direction){
-        case 'up': Scene.objects.player.resourceId = 'player_up'; break;
-        case 'down': Scene.objects.player.resourceId = 'player_down'; break;
-        case 'left': Scene.objects.player.resourceId = 'player_left'; break;
-        case 'right': Scene.objects.player.resourceId = 'player_right'; break;
-        }
-        //Двигаем камеру
-        var camDx = Math.floor(Field.width/3);
-        var camDy = Math.floor(Field.height/3);
-        if(Scene.objects.player.lpos.x <= 1){
-            Scene.camera.add(-camDx,0);
-        }
-        if(Scene.objects.player.lpos.x >= Field.width - 2){
-            Scene.camera.add(camDx,0);
-        }
-        if(Scene.objects.player.lpos.y <= 1){
-            Scene.camera.add(0,-camDy);
-        }
-        if(Scene.objects.player.lpos.y >= Field.height - 2){
-            Scene.camera.add(0,camDy);
-        }
-        //Сохраняем камеру в границах
-        if( Scene.camera.x < 0 ){
-            Scene.camera.x = 0;
-        }
-        if( Scene.camera.y < 0 ){
-            Scene.camera.y = 0;
-        } //Scene.width > Field.width - если карта полностью влезла в окно
-        if( Scene.camera.x > Scene.width - Field.width && Scene.width > Field.width){
-            Scene.camera.x = Scene.width- Field.width;
-        }
-        if( Scene.camera.y > Scene.height - Field.height && Scene.width > Field.width){
-            Scene.camera.y = Scene.height - Field.height;
-        }
-    }
+    //Начальное состояние
+    stateID = STATE.INTRO;
+    currentState = Intro;
+    currentState.init();
 
     Engine.play();
-    //alert("Ходить стрелочками :)");
 }
-
-
 
 //Формируем игровой объект
 // pass - возможность пройти через тайл
@@ -178,4 +95,55 @@ function Tile(elem)
     this.visible = false;
     this.interact = interact;
     this.pass = pass;
+}
+
+//Изменение тайлов от позиции pos, на расстояние viewDist
+function view(pos,viewDist,state)
+{
+    for(y = pos.y-viewDist; y <= pos.y+viewDist; y++){
+        for(x = pos.x-viewDist; x <= pos.x+viewDist; x++){
+            //Определяем тайлы на карте
+            if(x < 0 || y < 0) continue;
+            if(x >= Scene.width || y >= Scene.height) continue;
+            var dist = Math.sqrt((x-pos.x)*(x-pos.x)+(y-pos.y)*(y-pos.y));
+            if(dist <= viewDist)
+                Scene.tiles[y][x].visible = state;
+        }
+    }
+}
+
+
+function PlayerObject(pos){
+    this.resourceId = 'empty'; //Обязательное
+    this.pos = new Pos(pos.x, pos.y); //Обязательная глобальная позиция
+    this.viewDist = 1; //Дальность видимости
+    this.direction = 'right';
+    this.lpos = new Pos(0,0); //Локальная позиция
+    this.delta = new Pos(0,0); //dx,dy, смещение игрока
+    // переназночение евентов
+    this.eventKeyUp = function() //TODO: сделать проверку на выход за пределы границ карты
+    {   // стрелка вверх
+        this.delta.add(0, -1);
+        this.direction = 'up';
+    }
+    this.eventKeyLeft = function()
+    {   // влево
+        this.delta.add(-1, 0);
+        this.direction = 'left';
+    }
+    this.eventKeyRight = function()
+    {   // вправо
+        this.delta.add(1, 0);
+        this.direction = 'right';
+    }
+    this.eventKeyDown = function()
+    {   // вниз
+        this.delta.add(0, 1);
+        this.direction = 'down';
+    }
+
+    this.eventKeySpace = function(){ // пробел
+        //Взаимодейтсвие с тайлом
+        this.viewDist++;
+    }
 }

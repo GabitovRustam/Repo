@@ -59,6 +59,35 @@ var Settings = {
     }
 }
 
+//Уровни
+//Game states enum
+var STATE = {
+    NULL : 0,
+    INTRO : 1,
+    LEVEL : 2,
+    END : 3,
+    EXIT : 4
+};
+
+var stateID = STATE.NULL;
+var nextState = STATE.NULL;
+
+function GameState (){
+    this.init = function(){}
+    this.handle_events = function(){}
+    this.loigc = function(){}
+    this.render = function(){}
+    //this.destructor = function(){}
+}
+var currentState;
+
+function set_next_state(newState)
+{   //Елси пользователь не хочет выходить
+    if(nextState != STATE.EXIT){
+        nextState = newState;
+    }
+}
+
 //Двигло
 var Engine = {
     status : 'init',
@@ -79,8 +108,8 @@ var Engine = {
     loop : function(){ //игровой цикл
         switch(this.status){
         case 'load':
-            var percent;
-            if ((percent = Resource.load_percent()) == true){
+            var percent = Resource.load_percent();
+            if (percent == true){
                 this.status = 'play';
             }
             else Field.render_load(percent);
@@ -88,12 +117,20 @@ var Engine = {
 
         case 'play':
             //TODO: прикрутить fps
-            //events
-            Scene.handle_events();
-            //logic
-            this.logic();
-            //render
-            Scene.render();
+            if(stateID == STATE.EXIT){ this.status = 'exit'; break; }
+            //Do state event handling
+            currentState.handle_events();
+            //Do state logic
+            currentState.logic();
+            //Change state if needed
+            change_state();
+            //Do state rendering
+            currentState.render();
+            break;
+
+        case 'exit':
+            alert("Молодец, прошел игру");
+            this.pause();
             break;
         }
     },
@@ -141,8 +178,6 @@ var Field = {
     {
         this.context.font = "30pt Arial";
         this.context.lineWidth = 4;
-        //this.context.fillStyle = "#8ED6FF";
-        //this.context.strokeStyle = "black";
         this.context.clearRect(0, 0, Field.canvas.width, Field.canvas.height);
         this.context.textAlign = "center";
         var str = "Грузимся... "+percent+"%";
@@ -204,8 +239,6 @@ var Resource = {
 var Scene = {
     tiles : {},
     objects : {},
-    events : {},
-
     init : function(map)
     {
         this.camera = new Pos(0,0);
@@ -225,57 +258,10 @@ var Scene = {
     add_object : function(key,obj)
     {
         this.objects[key] = obj;
-    },
-
-    add_event: function(keyCode,fun)
-    {
-        this.events[keyCode] = fun;
-    },
-    //Обработка событий
-    handle_events: function()
-    {
-        if(this.keyboardEvent){
-            eval('Scene.objects.' + Scene.events[Scene.keyboardEvent.keyCode]);
-        }
-        this.keyboardEvent = null;
-    },
-    render : function()
-    {
-
-        //clear_screen();
-        Field.context.clearRect(0, 0, Field.canvas.width, Field.canvas.height);
-        //show_background();
-        Field.context.drawImage(Resource.resources.background,
-            Scene.camera.x * Field.tile_size, Scene.camera.y * Field.tile_size,
-            Scene.width * Field.tile_size, Scene.height * Field.tile_size,
-            0, 0, Field.canvas.width, Field.canvas.height);
-
-        //Рамка
-        Field.context.strokeStyle = '#000';
-        Field.context.strokeRect(0, 0, Field.canvas.width, Field.canvas.height);
-
-        //show_objects();
-        //Отрисовка тайлов
-        var size = Field.tile_size;
-        for(var y = Scene.camera.y, yloc = 0; y < Field.height + Scene.camera.y && y < Scene.height; y++, yloc++){
-            for(var x = Scene.camera.x, xloc = 0; x < Field.width + Scene.camera.x && x < Scene.width; x++, xloc++){
-                if(Scene.tiles[y][x].visible)
-                    Field.context.drawImage(Resource.resources[Scene.tiles[y][x].resourceId], xloc*size, yloc*size, size, size);
-            }
-        }
-        //Отрисовка объектов
-        for(key in this.objects){
-            if(this.objects[key].resourceId == "empty") continue;
-            Field.context.drawImage(Resource.resources[this.objects[key].resourceId], (this.objects[key].pos.x - this.camera.x) * size, (this.objects[key].pos.y - this.camera.y) * size, size, size);
-        }
-
-        //update_screen();
-        //cap_frame_rate();
     }
 }
 
-
 document.onkeydown = function key_down(event)
 {
-    Scene.keyboardEvent = event;
+    Engine.keyboardEvent = event;
 }
