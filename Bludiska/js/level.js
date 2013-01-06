@@ -92,19 +92,22 @@ Level.logic = function()
 {
     var lastPlayerPos = new Pos(Scene.objects.player.pos.x,Scene.objects.player.pos.y);
     var playerPos = Scene.objects.player.pos;
+
+
+    //Двигаемся по заданному направлению
+    playerPos.add(Scene.objects.player.delta.x, Scene.objects.player.delta.y);
+
+    //Если непроходимый тайл, двигаемся обратно
+    if(!Scene.tiles[playerPos.y][playerPos.x].pass)
+        playerPos.add(-Scene.objects.player.delta.x, -Scene.objects.player.delta.y);
+    Scene.objects.player.delta = new Pos(0,0);
+
     //Проверка на выход из уровня
     if( Scene.tiles[playerPos.y][playerPos.x].resourceId == 'exit'){
         cur_Level++;
         this.init();
         return;
     }
-
-    //Двигаемся по заданному направлению
-    playerPos.add(Scene.objects.player.delta.x, Scene.objects.player.delta.y);
-
-    //Если непроходимый тайл, двигаемся обратно
-    if(!Scene.tiles[playerPos.y][playerPos.x].pass) playerPos.add(-Scene.objects.player.delta.x, -Scene.objects.player.delta.y);
-    Scene.objects.player.delta = new Pos(0,0);
 
     //Открываем пространство которое видит игрок
     view(playerPos,Scene.objects.player.viewDist);
