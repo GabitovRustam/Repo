@@ -1,35 +1,47 @@
 var Level = new GameState();
-
+var cur_Level = 1;
 Level.init = function()
 {
-    //Карта 0 - свободно, 1 - стена
-    var map = new Array(
-        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
-        new Array(1,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
-        new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-        new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
-    );
-    //Определяет ресур в точке на карте
-    function resDef(x,y)
-    {
-        var elem = 'empty';
-        switch(map[y][x]){
-        case 1: elem = 'wall'; break;
-        case 2: elem = 'tak'; break;
-        }
-        return elem;
+    switch (cur_Level){
+    case 1:
+        //Карта 0 - свободно, 1 - стена
+        var map = new Array(
+            new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
+            new Array(1,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
+            new Array(1,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+            new Array(1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+            new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+            new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+            new Array(1,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+            new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+            new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+            new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
+            new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
+            new Array(1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
+            new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
+            new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
+            new Array(1,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
+            new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
+        );
+        //Загрузим игрока
+        var player = new PlayerObject(new Pos(1, 1));
+        Scene.add_object('player',player);
+        break;
+
+    case 2:
+        var map = new Array(
+            new Array(1,1,1,1,1),
+            new Array(1,0,0,9,1),
+            new Array(1,1,1,1,1)
+        );
+        Scene.objects.player.pos = new Pos(1,1);
+
+        break;
+
+    default:
+        set_next_state(STATE.END);
+        return;
+
     }
 
     //Загрузка элементов
@@ -37,33 +49,39 @@ Level.init = function()
     for(var y = 0; y < Scene.height; y++){
         for(var x = 0; x < Scene.width; x++){
             //Определяем тайлы на карте
-            var elem = resDef(x,y);
+            var elem = TILE[map[y][x]];
             tile = new Tile(elem);
             Scene.set_tile(tile, new Pos(x, y));
         }
     }
 
-    //Загрузим игрока
-    var player = new PlayerObject(new Pos(1, 1));
-    Scene.add_object('player',player);
+
 }
 
 Level.handle_events = function()
 {
     if(Engine.keyboardEvent){
         switch(Engine.keyboardEvent.keyCode){
-        case KEYCODE.aup: Scene.objects.player.eventKeyUp();
+        case KEYCODE.aup:
+        case KEYCODE.w:
+            Scene.objects.player.move_up();
             break;
-        case KEYCODE.adown: Scene.objects.player.eventKeyDown();
+        case KEYCODE.adown:
+        case KEYCODE.s:
+            Scene.objects.player.move_down();
             break;
-        case KEYCODE.aleft: Scene.objects.player.eventKeyLeft();
+        case KEYCODE.aleft:
+        case KEYCODE.a:
+            Scene.objects.player.move_left();
             break;
-        case KEYCODE.aright: Scene.objects.player.eventKeyRight();
+        case KEYCODE.aright:
+        case KEYCODE.d:
+            Scene.objects.player.move_right();
             break;
-        case KEYCODE.space: Scene.objects.player.eventKeySpace();
+        case KEYCODE.space: Scene.objects.player.interaction();
             break;
-        case KEYCODE.a : set_next_state(STATE.EXIT);
-            break;
+        //case KEYCODE.a : set_next_state(STATE.EXIT);
+        //    break;
         }
         Engine.keyboardEvent = null;
     }
@@ -74,6 +92,12 @@ Level.logic = function()
 {
     var lastPlayerPos = new Pos(Scene.objects.player.pos.x,Scene.objects.player.pos.y);
     var playerPos = Scene.objects.player.pos;
+    //Проверка на выход из уровня
+    if( Scene.tiles[playerPos.y][playerPos.x].resourceId == 'exit'){
+        cur_Level++;
+        this.init();
+        return;
+    }
 
     //Двигаемся по заданному направлению
     playerPos.add(Scene.objects.player.delta.x, Scene.objects.player.delta.y);

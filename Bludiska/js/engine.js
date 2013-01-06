@@ -63,10 +63,7 @@ var Settings = {
 //Game states enum
 var STATE = {
     NULL : 0,
-    INTRO : 1,
-    LEVEL : 2,
-    END : 3,
-    EXIT : 4
+    EXIT : 99
 };
 
 var stateID = STATE.NULL;
@@ -131,7 +128,6 @@ var Engine = {
             currentState.render();
 
             break;
-
         case 'exit':
             alert("Молодец, прошел игру");
             this.pause();
@@ -152,7 +148,7 @@ var Engine = {
 };
 
 //Расчет FPS
-var filterStrength = 50;
+var filterStrength = 5;
 var frameTime = 0, lastLoop = new Date, thisLoop;
 function computeFPS(){
   var thisFrameTime = (thisLoop = new Date) - lastLoop;

@@ -6,22 +6,45 @@ var HEIGHT = 450;
 var GAME_NAME = "labyrinth"
 var RESOURCE = {
     'logo' : 'logo/logo.png',
-    'background': 'tiles/background.jpg', //обязательный ресурс background
-    'empty': 'tiles/empty.jpg', //для пустых клеток
-    'tak'  : 'logo/prostotak.gif',
-    'wall' : 'tiles/wall.png',
-    'hren' : 'tiles/mario.png',
+    'background': 'tiles/background.jpg',
     'fog'  : 'tiles/fog.jpg',
+
+    'empty': 'tiles/empty.jpg',     //0 для пустых клеток
+    'wall' : 'tiles/wall.png',      //1
+    'tak'  : 'logo/prostotak.gif',  //2
+
+    'exit' : 'tiles/exit.jpg',      //9
+
     'player_up' : 'tiles/player_up.png',
     'player_down' : 'tiles/player_down.png',
     'player_left' : 'tiles/player_left.png',
     'player_right' : 'tiles/player_right.png',
 };
 
-
 window.onload = init;
 
+function init()
+{
+    Engine.init_resource(RESOURCE);
+    Engine.init({
+        width : WIDTH,
+        height : HEIGHT,
+        game_name : GAME_NAME,
+        size : TILE_SIZE,
+        fps : MAX_FPS
+    });
 
+    //Состояния игры (enum) для переходов
+    STATE.INTRO = 1;
+    STATE.LEVEL = 2;
+    STATE.END = 3;
+    //Начальное состояние
+    stateID = STATE.INTRO;
+    currentState = Intro;
+    currentState.init();
+
+    Engine.play();
+}
 
 function change_state()
 {
@@ -43,7 +66,10 @@ function change_state()
                 currentState = Level;
                 break;
             case STATE.END:
-                currentState = End;
+                //currentState = End;
+                alert("Конец, типа");
+                currentState = Intro;
+                cur_Level = 1;
                 break;
         }
         //Change the current state ID
@@ -55,29 +81,18 @@ function change_state()
     }
 }
 
-function init()
-{
-    Engine.init_resource(RESOURCE);
-    Engine.init({
-        width : WIDTH,
-        height : HEIGHT,
-        game_name : GAME_NAME,
-        size : TILE_SIZE,
-        fps : MAX_FPS
-    });
+//Определяет ресур в точке на карте
+var TILE = [];
+    TILE[0] = 'empty';
+    TILE[1] = 'wall';
+    TILE[2] = 'tak';
 
-    //Начальное состояние
-    stateID = STATE.INTRO;
-    currentState = Intro;
-    currentState.init();
-
-    Engine.play();
-}
+    TILE[9] = 'exit';
 
 //Формируем игровой объект
 //  pass - возможность пройти через тайл
 //  interact - возможность взаимодействия с тайлом
-//  transparency - прозрачность тайла
+//  transparency - прозрачность тайла для просмотра через него
 function Tile(elem)
 {
     this.resourceId = elem; //Обязательный, для определения элемента ресурса
@@ -94,7 +109,6 @@ function Tile(elem)
         interact = true;
         break;
     }
-    this.visible = false;
     this.interact = interact;
     this.trasparency = trasparency;
     this.pass = pass;
@@ -160,38 +174,42 @@ function view(pos,viewDist)
     }
 }
 
-
+//Объекты
 function PlayerObject(pos){
     this.resourceId = 'empty'; //Обязательное
     this.pos = new Pos(pos.x, pos.y); //Обязательная глобальная позиция
-    this.viewDist = 2; //Дальность видимости
+    this.viewDist = 1; //Дальность видимости
     this.direction = 'right';
     this.lpos = new Pos(0,0); //Локальная позиция
     this.delta = new Pos(0,0); //dx,dy, смещение игрока
     // переназночение евентов
-    this.eventKeyUp = function()
+    this.move_up = function()
     {   // стрелка вверх
         this.delta.add(0, -1);
         this.direction = 'up';
     }
-    this.eventKeyLeft = function()
+    this.move_left = function()
     {   // влево
         this.delta.add(-1, 0);
         this.direction = 'left';
     }
-    this.eventKeyRight = function()
+    this.move_right = function()
     {   // вправо
         this.delta.add(1, 0);
         this.direction = 'right';
     }
-    this.eventKeyDown = function()
+    this.move_down = function()
     {   // вниз
         this.delta.add(0, 1);
         this.direction = 'down';
     }
 
-    this.eventKeySpace = function(){ // пробел
+    this.interaction = function(){ // пробел
         //Взаимодейтсвие с тайлом
         this.viewDist++;
     }
+}
+
+function ExitObject(pos){
+
 }
