@@ -19,6 +19,8 @@ var RESOURCE = {
     'player_down' : 'tiles/player_down.png',
     'player_left' : 'tiles/player_left.png',
     'player_right' : 'tiles/player_right.png',
+
+    'view_bonus' : 'tiles/view_bonus.png'
 };
 
 window.onload = init;
@@ -115,7 +117,8 @@ function Tile(elem)
 }
 
 //Видимость тайлов от позиции pos, на расстояние viewDist
-function view(pos,viewDist)
+
+function view(pos,viewDist,hide)
 {
     var toCheck = [];
     for(y = pos.y-viewDist; y <= pos.y+viewDist; y++){
@@ -123,6 +126,8 @@ function view(pos,viewDist)
             //Отбраываем выходы за массив
             if(x < 0 || y < 0) continue;
             if(x >= Scene.width || y >= Scene.height) continue;
+            if(hide){ Scene.tiles[y][x].visible = false; continue; }
+
             var dist = Math.sqrt((x-pos.x)*(x-pos.x)+(y-pos.y)*(y-pos.y));
 
             if(dist <= viewDist)
@@ -132,7 +137,7 @@ function view(pos,viewDist)
             }
         }
     }
-
+    if(hide) return;
     //Проверка на видимость
     for(var key in toCheck){
         //Разность координат точки на проверки с расположением глаз
@@ -175,7 +180,8 @@ function view(pos,viewDist)
 }
 
 //Объекты
-function PlayerObject(pos){
+function PlayerObject(pos)
+{
     this.resourceId = 'empty'; //Обязательное
     this.pos = new Pos(pos.x, pos.y); //Обязательная глобальная позиция
     this.viewDist = 1; //Дальность видимости
@@ -208,8 +214,26 @@ function PlayerObject(pos){
         //Взаимодейтсвие с тайлом
         this.viewDist++;
     }
+
+    this.check_collision = function(obj)
+    {   //проверка колизии с объектом
+        if(obj.pos.x == this.pos.x && obj.pos.y == this.pos.y) return true;
+        else return false;
+    }
+
+    this.add_bonus = function(obj)
+    {
+        switch(obj.type){
+        case 'view_bonus':
+            this.viewDist++;
+            break;
+        }
+    }
 }
 
-function ExitObject(pos){
-
+function BonusObject(pos,type)
+{
+    this.type = type;
+    this.resourceId = type;
+    this.pos = new Pos(pos.x, pos.y);
 }

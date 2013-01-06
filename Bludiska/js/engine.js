@@ -198,10 +198,9 @@ var Field = {
         var str = "Грузимся... "+percent+"%";
         this.context.strokeText(str,this.canvas.width/2,this.canvas.height/2);
         //Прогресс бар
-        this.context.beginPath();
+        //this.context.beginPath();
         this.context.rect(this.canvas.width*0.25, this.canvas.height/2+50, percent/100 * this.canvas.width*0.5, this.canvas.height*0.10);
         this.context.fill();
-
         this.context.stroke();
     }
 }

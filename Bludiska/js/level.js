@@ -25,14 +25,23 @@ Level.init = function()
         );
         //Загрузим игрока
         var player = new PlayerObject(new Pos(1, 1));
-        Scene.add_object('player',player);
+        var bonuses  = [
+                    new BonusObject(new Pos(22, 1), 'view_bonus'),
+                    new BonusObject(new Pos(1, 12), 'view_bonus')
+                ]
+
+        Scene.add_object('player', player);
+        Scene.add_object('bonuses', bonuses);
+
         break;
 
     case 2:
         var map = new Array(
-            new Array(1,1,1,1,1),
-            new Array(1,0,0,9,1),
-            new Array(1,1,1,1,1)
+            new Array(1,1,1,1,1,1,1),
+            new Array(1,0,2,9,0,0,1),
+            new Array(1,0,1,1,1,0,1),
+            new Array(1,0,0,0,0,0,1),
+            new Array(1,1,1,1,1,1,1)
         );
         Scene.objects.player.pos = new Pos(1,1);
 
@@ -80,8 +89,7 @@ Level.handle_events = function()
             break;
         case KEYCODE.space: Scene.objects.player.interaction();
             break;
-        //case KEYCODE.a : set_next_state(STATE.EXIT);
-        //    break;
+
         }
         Engine.keyboardEvent = null;
     }
@@ -93,22 +101,20 @@ Level.logic = function()
     var lastPlayerPos = new Pos(Scene.objects.player.pos.x,Scene.objects.player.pos.y);
     var playerPos = Scene.objects.player.pos;
 
-
+    //Закрываем старое пространство
+    view(playerPos,Scene.objects.player.viewDist,true); //Если убрать, то не будет затирать увиденные тайлы
     //Двигаемся по заданному направлению
     playerPos.add(Scene.objects.player.delta.x, Scene.objects.player.delta.y);
-
     //Если непроходимый тайл, двигаемся обратно
     if(!Scene.tiles[playerPos.y][playerPos.x].pass)
         playerPos.add(-Scene.objects.player.delta.x, -Scene.objects.player.delta.y);
     Scene.objects.player.delta = new Pos(0,0);
-
     //Проверка на выход из уровня
     if( Scene.tiles[playerPos.y][playerPos.x].resourceId == 'exit'){
         cur_Level++;
         this.init();
         return;
     }
-
     //Открываем пространство которое видит игрок
     view(playerPos,Scene.objects.player.viewDist);
     //Расчитываем локальную (на экране) позицию игрока
@@ -150,6 +156,14 @@ Level.logic = function()
     if( Scene.camera.y > Scene.height - Field.height && Scene.width > Field.width ){
         Scene.camera.y = Scene.height - Field.height;
     }
+
+    for(key in Scene.objects.bonuses){//Проверяем все бонусы
+        if( Scene.objects.player.check_collision(Scene.objects.bonuses[key]) ){ //проверяем на коллизию с игроком
+            //Если игрок стоит на бонусе
+            Scene.objects.player.add_bonus(Scene.objects.bonuses[key]); //Используем бонус
+            Scene.objects.bonuses.splice(key,1); //Удаляем этот бонус
+        }
+    }
 }
 
 Level.render = function()
@@ -162,10 +176,6 @@ Level.render = function()
         Scene.width * Field.tile_size, Scene.height * Field.tile_size,
         0, 0, Field.canvas.width, Field.canvas.height);
 
-    //Рамка
-    Field.context.strokeStyle = '#000';
-    Field.context.strokeRect(0, 0, Field.canvas.width, Field.canvas.height);
-
     //show_objects();
     //Отрисовка тайлов
     var size = Field.tile_size;
@@ -173,13 +183,25 @@ Level.render = function()
         for(var x = Scene.camera.x, xloc = 0; x < Field.width + Scene.camera.x && x < Scene.width; x++, xloc++){
             if(Scene.tiles[y][x].visible){
                 Field.context.drawImage(Resource.resources[Scene.tiles[y][x].resourceId], xloc*size, yloc*size, size, size);
-                Scene.tiles[y][x].visible = false;
             }
         }
     }
     //Отрисовка объектов
     for(key in Scene.objects){
-        if(Scene.objects[key].resourceId == "empty") continue;
-        Field.context.drawImage(Resource.resources[Scene.objects[key].resourceId], (Scene.objects[key].pos.x - Scene.camera.x) * size, (Scene.objects[key].pos.y - Scene.camera.y) * size, size, size);
+        if(key == 'bonuses'){ //Особая отрисовка для бонусов :/
+            for(num in Scene.objects[key]){
+                if(Scene.tiles[Scene.objects[key][num].pos.y][Scene.objects[key][num].pos.x].visible)
+                    Field.context.drawImage(Resource.resources[Scene.objects[key][num].resourceId],
+                                            (Scene.objects[key][num].pos.x - Scene.camera.x) * size,
+                                            (Scene.objects[key][num].pos.y - Scene.camera.y) * size, size, size);
+            }
+        }
+        else{ //отрисовка остальных объектов
+            if(Scene.objects[key].resourceId == "empty") continue;
+            Field.context.drawImage(Resource.resources[Scene.objects[key].resourceId],
+                                    (Scene.objects[key].pos.x - Scene.camera.x) * size,
+                                    (Scene.objects[key].pos.y - Scene.camera.y) * size, size, size);
+        }
     }
+
 }
