@@ -75,18 +75,20 @@ function init()
 }
 
 //Формируем игровой объект
-// pass - возможность пройти через тайл
-// interact - возможность взаимодействия с тайлом
-//
+//  pass - возможность пройти через тайл
+//  interact - возможность взаимодействия с тайлом
+//  transparency - прозрачность тайла
 function Tile(elem)
 {
     this.resourceId = elem; //Обязательный, для определения элемента ресурса
     var pass = true,
-        interact = false;
+        interact = false,
+        trasparency = true;
     //Настройки для определенного вида тайла
     switch(elem){
     case 'wall':
         pass = false;
+        trasparency = false;
         break;
     case 'tak':
         interact = true;
@@ -94,20 +96,66 @@ function Tile(elem)
     }
     this.visible = false;
     this.interact = interact;
+    this.trasparency = trasparency;
     this.pass = pass;
 }
 
-//Изменение тайлов от позиции pos, на расстояние viewDist
-function view(pos,viewDist,state)
+//Видимость тайлов от позиции pos, на расстояние viewDist
+function view(pos,viewDist)
 {
+    var toCheck = [];
     for(y = pos.y-viewDist; y <= pos.y+viewDist; y++){
         for(x = pos.x-viewDist; x <= pos.x+viewDist; x++){
-            //Определяем тайлы на карте
+            //Отбраываем выходы за массив
             if(x < 0 || y < 0) continue;
             if(x >= Scene.width || y >= Scene.height) continue;
             var dist = Math.sqrt((x-pos.x)*(x-pos.x)+(y-pos.y)*(y-pos.y));
+
             if(dist <= viewDist)
-                Scene.tiles[y][x].visible = state;
+            {
+                //Добавить на рассмотрение видимости
+                toCheck.push([x,y]);
+            }
+        }
+    }
+
+    //Проверка на видимость
+    for(var key in toCheck){
+        //Разность координат точки на проверки с расположением глаз
+        var dx = toCheck[key][0] - pos.x,
+            dy = toCheck[key][1] - pos.y;
+
+        var max = Math.max(Math.abs(dx),Math.abs(dy));
+        //Сами себя мы видим
+        if(max == 0){ Scene.tiles[pos.y][pos.x].visible = true; continue; }
+
+        var stepx = dx/max,
+            stepy = dy/max;
+
+        var curx = pos.x,
+            cury = pos.y;
+
+        for(var i = 0; i < max; i++){
+
+            curx += stepx;
+            cury += stepy;
+
+            //некое округление .5 в обе стороны 0_о
+            if(stepx > 0) curx+=0.001;
+            if(stepx < 0) curx-=0.001;
+            if(stepy > 0) cury+=0.001;
+            if(stepy < 0) cury-=0.001;
+
+            x = Math.round(curx);
+            y = Math.round(cury);
+
+            if( Scene.tiles[y][x].trasparency == true ){
+                Scene.tiles[y][x].visible = true;
+            }
+            else {
+                Scene.tiles[y][x].visible = true;
+                break;
+            }
         }
     }
 }
@@ -116,12 +164,12 @@ function view(pos,viewDist,state)
 function PlayerObject(pos){
     this.resourceId = 'empty'; //Обязательное
     this.pos = new Pos(pos.x, pos.y); //Обязательная глобальная позиция
-    this.viewDist = 1; //Дальность видимости
+    this.viewDist = 2; //Дальность видимости
     this.direction = 'right';
     this.lpos = new Pos(0,0); //Локальная позиция
     this.delta = new Pos(0,0); //dx,dy, смещение игрока
     // переназночение евентов
-    this.eventKeyUp = function() //TODO: сделать проверку на выход за пределы границ карты
+    this.eventKeyUp = function()
     {   // стрелка вверх
         this.delta.add(0, -1);
         this.direction = 'up';

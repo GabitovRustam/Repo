@@ -89,6 +89,7 @@ function set_next_state(newState)
 }
 
 //Двигло
+var lastLoop = new Date;
 var Engine = {
     status : 'init',
     isPlay : false, //состояние паузы/игры
@@ -100,12 +101,15 @@ var Engine = {
 
     init : function(settings) //Инициализация с массивом параметров
     {
+
         Settings.init(settings);
         Field.init();
+
         this.fps = Settings.get("fps");
     },
 
-    loop : function(){ //игровой цикл
+    loop : function()
+    {   //игровой цикл
         switch(this.status){
         case 'load':
             var percent = Resource.load_percent();
@@ -116,7 +120,6 @@ var Engine = {
             break;
 
         case 'play':
-            //TODO: прикрутить fps
             if(stateID == STATE.EXIT){ this.status = 'exit'; break; }
             //Do state event handling
             currentState.handle_events();
@@ -126,6 +129,7 @@ var Engine = {
             change_state();
             //Do state rendering
             currentState.render();
+
             break;
 
         case 'exit':
@@ -133,6 +137,7 @@ var Engine = {
             this.pause();
             break;
         }
+        computeFPS();
     },
 
     //Функции запуска/остановки игрового цикла
@@ -145,6 +150,20 @@ var Engine = {
         clearInterval(this.isPlay);
     }
 };
+
+//Расчет FPS
+var filterStrength = 50;
+var frameTime = 0, lastLoop = new Date, thisLoop;
+function computeFPS(){
+  var thisFrameTime = (thisLoop = new Date) - lastLoop;
+  frameTime += (thisFrameTime - frameTime) / filterStrength;
+  lastLoop = thisLoop;
+}
+
+setInterval(function(){
+  var fpsOut = document.getElementById('fps');
+  fpsOut.innerHTML = (1000 / frameTime).toFixed(1) + " fps";
+},1000);
 
 //Поле из плиток
 var Field = {

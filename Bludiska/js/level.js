@@ -82,10 +82,8 @@ Level.logic = function()
     if(!Scene.tiles[playerPos.y][playerPos.x].pass) playerPos.add(-Scene.objects.player.delta.x, -Scene.objects.player.delta.y);
     Scene.objects.player.delta = new Pos(0,0);
 
-    //Закрываем старое пространство туманом
-    view(lastPlayerPos,Scene.objects.player.viewDist,false);
-    //Открываем новое пространство
-    view(playerPos,Scene.objects.player.viewDist,true);
+    //Открываем пространство которое видит игрок
+    view(playerPos,Scene.objects.player.viewDist);
     //Расчитываем локальную (на экране) позицию игрока
     Scene.objects.player.lpos.x = playerPos.x - Scene.camera.x;
     Scene.objects.player.lpos.y = playerPos.y - Scene.camera.y;
@@ -119,10 +117,10 @@ Level.logic = function()
     if( Scene.camera.y < 0 ){
         Scene.camera.y = 0;
     } //Scene.width > Field.width - если карта полностью влезла в окно
-    if( Scene.camera.x > Scene.width - Field.width && Scene.width > Field.width){
-        Scene.camera.x = Scene.width- Field.width;
+    if( Scene.camera.x > Scene.width - Field.width && Scene.width > Field.width ){
+        Scene.camera.x = Scene.width - Field.width;
     }
-    if( Scene.camera.y > Scene.height - Field.height && Scene.width > Field.width){
+    if( Scene.camera.y > Scene.height - Field.height && Scene.width > Field.width ){
         Scene.camera.y = Scene.height - Field.height;
     }
 }
@@ -146,8 +144,10 @@ Level.render = function()
     var size = Field.tile_size;
     for(var y = Scene.camera.y, yloc = 0; y < Field.height + Scene.camera.y && y < Scene.height; y++, yloc++){
         for(var x = Scene.camera.x, xloc = 0; x < Field.width + Scene.camera.x && x < Scene.width; x++, xloc++){
-            if(Scene.tiles[y][x].visible)
+            if(Scene.tiles[y][x].visible){
                 Field.context.drawImage(Resource.resources[Scene.tiles[y][x].resourceId], xloc*size, yloc*size, size, size);
+                Scene.tiles[y][x].visible = false;
+            }
         }
     }
     //Отрисовка объектов
