@@ -11,7 +11,7 @@ var RESOURCE = {
 
     'empty': 'tiles/empty.jpg',     //0 для пустых клеток
     'wall' : 'tiles/wall.png',      //1
-    'tak'  : 'logo/prostotak.gif',  //2
+    'grid' : 'tiles/grid.gif',      //2
 
     'exit' : 'tiles/exit.jpg',      //9
 
@@ -87,7 +87,7 @@ function change_state()
 var TILE = [];
     TILE[0] = 'empty';
     TILE[1] = 'wall';
-    TILE[2] = 'tak';
+    TILE[2] = 'grid';
 
     TILE[9] = 'exit';
 
@@ -98,6 +98,8 @@ var TILE = [];
 function Tile(elem)
 {
     this.resourceId = elem; //Обязательный, для определения элемента ресурса
+    this.pos = new Pos(0,0);
+    this.visible = false;
     var pass = true,
         interact = false,
         trasparency = true;
@@ -107,17 +109,37 @@ function Tile(elem)
         pass = false;
         trasparency = false;
         break;
-    case 'tak':
+    case 'grid':
+        pass = false;
+        break;
+    case 'torch':
+        interact = true;
+        pass = false;
+        trasparency = false;
+        break;
+    case 'door_close':
+        interact = true;
+        pass = false;
+        trasparency = false;
+        break;
+    case 'door_open':
         interact = true;
         break;
     }
     this.interact = interact;
     this.trasparency = trasparency;
     this.pass = pass;
+    this.draw = function()
+    {
+        if(this.visible){
+            Field.context.drawImage( Resource.resources[this.resourceId],
+                                    (this.pos.x - Scene.camera.x) * Field.tile_size,
+                                    (this.pos.y - Scene.camera.y) * Field.tile_size, Field.tile_size, Field.tile_size);
+        }
+    }
 }
 
-//Видимость тайлов от позиции pos, на расстояние viewDist
-
+//Видимость тайлов от позиции pos, на расстояние viewDist, hide - флаг если надо закрыть тайлы
 function view(pos,viewDist,hide)
 {
     var toCheck = [];
@@ -180,10 +202,32 @@ function view(pos,viewDist,hide)
 }
 
 //Объекты
+function ObjectClass()
+{
+    this.resourceId = 'empty';
+    this.pos = new Pos(0,0);
+    this.draw = function()
+    {
+        Field.context.drawImage(Resource.resources[this.resourceId],
+                                (this.pos.x - Scene.camera.x) * Field.tile_size,
+                                (this.pos.y - Scene.camera.y) * Field.tile_size, Field.tile_size, Field.tile_size);
+    }
+}
+var object = new ObjectClass();
+
 function PlayerObject(pos)
 {
+    /*
     this.resourceId = 'empty'; //Обязательное
     this.pos = new Pos(pos.x, pos.y); //Обязательная глобальная позиция
+    this.draw = function()
+    {
+        Field.context.drawImage(Resource.resources[this.resourceId],
+                                (this.pos.x - Scene.camera.x) * Field.tile_size,
+                                (this.pos.y - Scene.camera.y) * Field.tile_size, Field.tile_size, Field.tile_size);
+    }
+    */
+    this.pos = new Pos(pos.x, pos.y);
     this.viewDist = 1; //Дальность видимости
     this.direction = 'right';
     this.lpos = new Pos(0,0); //Локальная позиция
@@ -230,6 +274,8 @@ function PlayerObject(pos)
         }
     }
 }
+//Как бы наследование класса через prototype
+PlayerObject.prototype = object;
 
 function BonusObject(pos,type)
 {
@@ -237,3 +283,4 @@ function BonusObject(pos,type)
     this.resourceId = type;
     this.pos = new Pos(pos.x, pos.y);
 }
+BonusObject.prototype = object;

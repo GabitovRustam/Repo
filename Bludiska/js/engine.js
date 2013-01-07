@@ -267,6 +267,7 @@ var Scene = {
     set_tile : function(tile, pos)
     {
         this.tiles[pos.y][pos.x] = tile;
+        this.tiles[pos.y][pos.x].pos = new Pos(pos.x,pos.y);
     },
     //Добавления объекта
     add_object : function(key,obj)

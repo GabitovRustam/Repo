@@ -21,7 +21,6 @@ Intro.logic = function()
 Intro.render = function()
 {
     Field.context.clearRect(0, 0, Field.canvas.width, Field.canvas.height);
-
     //Лого
     Field.context.drawImage(Resource.resources.logo,0,0);
     //Прэс эни батон

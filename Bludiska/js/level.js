@@ -17,9 +17,9 @@ Level.init = function()
             new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
             new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
             new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
-            new Array(1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
+            new Array(1,2,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
             new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1),
-            new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
+            new Array(1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1),
             new Array(1,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1),
             new Array(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
         );
@@ -112,6 +112,8 @@ Level.logic = function()
     //Проверка на выход из уровня
     if( Scene.tiles[playerPos.y][playerPos.x].resourceId == 'exit'){
         cur_Level++;
+        //Убираем все невзятые бонусы
+        Scene.objects.bonuses.splice(0);
         this.init();
         return;
     }
@@ -181,26 +183,23 @@ Level.render = function()
     var size = Field.tile_size;
     for(var y = Scene.camera.y, yloc = 0; y < Field.height + Scene.camera.y && y < Scene.height; y++, yloc++){
         for(var x = Scene.camera.x, xloc = 0; x < Field.width + Scene.camera.x && x < Scene.width; x++, xloc++){
-            if(Scene.tiles[y][x].visible){
-                Field.context.drawImage(Resource.resources[Scene.tiles[y][x].resourceId], xloc*size, yloc*size, size, size);
-            }
+            Scene.tiles[y][x].draw();
         }
     }
     //Отрисовка объектов
     for(key in Scene.objects){
         if(key == 'bonuses'){ //Особая отрисовка для бонусов :/
             for(num in Scene.objects[key]){
+                //Если виден тайл на месте бонуса
                 if(Scene.tiles[Scene.objects[key][num].pos.y][Scene.objects[key][num].pos.x].visible)
-                    Field.context.drawImage(Resource.resources[Scene.objects[key][num].resourceId],
-                                            (Scene.objects[key][num].pos.x - Scene.camera.x) * size,
-                                            (Scene.objects[key][num].pos.y - Scene.camera.y) * size, size, size);
+                    //Рисуем бонус
+                    Scene.objects[key][num].draw();
+
             }
         }
         else{ //отрисовка остальных объектов
             if(Scene.objects[key].resourceId == "empty") continue;
-            Field.context.drawImage(Resource.resources[Scene.objects[key].resourceId],
-                                    (Scene.objects[key].pos.x - Scene.camera.x) * size,
-                                    (Scene.objects[key].pos.y - Scene.camera.y) * size, size, size);
+            Scene.objects[key].draw();
         }
     }
 
