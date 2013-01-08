@@ -49,6 +49,7 @@ Level.init = function()
 
     default:
         set_next_state(STATE.END);
+        Resource.resources.end_game_sound.play();
         return;
 
     }
@@ -87,7 +88,8 @@ Level.handle_events = function()
         case KEYCODE.d:
             Scene.objects.player.move_right();
             break;
-        case KEYCODE.space: Scene.objects.player.interaction();
+        case KEYCODE.space: 
+			Scene.objects.player.interaction();
             break;
 
         }
@@ -103,25 +105,32 @@ Level.logic = function()
 
     //Закрываем старое пространство
     view(playerPos,Scene.objects.player.viewDist,true); //Если убрать, то не будет затирать увиденные тайлы
+
     //Двигаемся по заданному направлению
     playerPos.add(Scene.objects.player.delta.x, Scene.objects.player.delta.y);
+
     //Если непроходимый тайл, двигаемся обратно
     if(!Scene.tiles[playerPos.y][playerPos.x].pass)
         playerPos.add(-Scene.objects.player.delta.x, -Scene.objects.player.delta.y);
     Scene.objects.player.delta = new Pos(0,0);
+
     //Проверка на выход из уровня
     if( Scene.tiles[playerPos.y][playerPos.x].resourceId == 'exit'){
         cur_Level++;
         //Убираем все невзятые бонусы
         Scene.objects.bonuses.splice(0);
+        Resource.resources.exit_sound.play();
         this.init();
         return;
     }
+
     //Открываем пространство которое видит игрок
     view(playerPos,Scene.objects.player.viewDist);
+
     //Расчитываем локальную (на экране) позицию игрока
     Scene.objects.player.lpos.x = playerPos.x - Scene.camera.x;
     Scene.objects.player.lpos.y = playerPos.y - Scene.camera.y;
+
     //Вращает иконку игрока
     switch(Scene.objects.player.direction){
     case 'up': Scene.objects.player.resourceId = 'player_up'; break;
@@ -188,13 +197,12 @@ Level.render = function()
     }
     //Отрисовка объектов
     for(key in Scene.objects){
-        if(key == 'bonuses'){ //Особая отрисовка для бонусов :/
+        if(key == 'bonuses'){ //Особая отрисовка для бонусов :\
             for(num in Scene.objects[key]){
                 //Если виден тайл на месте бонуса
                 if(Scene.tiles[Scene.objects[key][num].pos.y][Scene.objects[key][num].pos.x].visible)
                     //Рисуем бонус
                     Scene.objects[key][num].draw();
-
             }
         }
         else{ //отрисовка остальных объектов

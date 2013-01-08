@@ -2,7 +2,7 @@ var Intro = new GameState();
 
 Intro.init = function()
 {
-
+    Resource.resources.intro_sound.play();
 }
 
 Intro.handle_events = function()

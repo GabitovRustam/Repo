@@ -14,13 +14,19 @@ var RESOURCE = {
     'grid' : 'tiles/grid.gif',      //2
 
     'exit' : 'tiles/exit.jpg',      //9
+    'exit_sound' : 'sound/exit.mp3',
 
     'player_up' : 'tiles/player_up.png',
     'player_down' : 'tiles/player_down.png',
     'player_left' : 'tiles/player_left.png',
     'player_right' : 'tiles/player_right.png',
 
-    'view_bonus' : 'tiles/view_bonus.png'
+    'view_bonus' : 'tiles/view_bonus.png',
+    'view_bonus_sound' : 'sound/omnomnom.mp3',
+
+    'intro_sound' : 'sound/intro.mp3',
+    'end_game_sound' : 'sound/end_game.mp3'
+
 };
 
 window.onload = init;
@@ -41,11 +47,11 @@ function init()
     STATE.LEVEL = 2;
     STATE.END = 3;
     //Начальное состояние
-    stateID = STATE.INTRO;
-    currentState = Intro;
-    currentState.init();
-
+    //stateID = STATE.INTRO;
+    currentState = new GameState();
+    //currentState.init();
     Engine.play();
+
 }
 
 function change_state()
@@ -256,7 +262,7 @@ function PlayerObject(pos)
 
     this.interaction = function(){ // пробел
         //Взаимодейтсвие с тайлом
-        this.viewDist++;
+        
     }
 
     this.check_collision = function(obj)
@@ -269,6 +275,7 @@ function PlayerObject(pos)
     {
         switch(obj.type){
         case 'view_bonus':
+            Resource.resources.view_bonus_sound.play();
             this.viewDist++;
             break;
         }

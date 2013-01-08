@@ -72,7 +72,7 @@ var nextState = STATE.NULL;
 function GameState (){
     this.init = function(){}
     this.handle_events = function(){}
-    this.loigc = function(){}
+    this.logic = function(){}
     this.render = function(){}
     //this.destructor = function(){}
 }
@@ -112,6 +112,7 @@ var Engine = {
             var percent = Resource.load_percent();
             if (percent == true){
                 this.status = 'play';
+                set_next_state(STATE.INTRO)
             }
             else Field.render_load(percent);
             break;
@@ -126,8 +127,8 @@ var Engine = {
             change_state();
             //Do state rendering
             currentState.render();
-
             break;
+
         case 'exit':
             alert("Молодец, прошел игру");
             this.pause();
@@ -228,15 +229,36 @@ var Resource = {
         Engine.status = 'load';
         _pre_load = resources;
         _pre_load_count = sizeOf(resources);
-        var imgs = {};
+        var img = {};
+        var sound = {};
         for(key in resources){
-            imgs[key] = new Image;
-            imgs[key].key = key;
-            imgs[key].onload = function()
-            {
-                Resource.resources[this.key] = this;
+            if(resources[key].substr(0,5) == 'sound') {
+                if(document.location.hostname == "xoxo500.500mb.net"){
+                    var arr = [];
+                    arr = resources[key].split('.');
+                    resources[key] = document.location.href + arr[0] + '.jpg';
+                }
+
+                sound[key] = new Audio;
+                sound[key].key = key.toLowerCase();
+                sound[key].volume = 0.3;
+                sound[key].addEventListener('canplaythrough', function()
+                {
+                    Resource.resources[this.key] = this;
+                } , false);
+                sound[key].src = resources[key];
+                sound[key].load();
             }
-            imgs[key].src = resources[key];
+            else {
+                img[key] = new Image;
+                img[key].key = key.toLowerCase();
+                img[key].onload = function()
+                {
+                    Resource.resources[this.key] = this;
+                }
+                img[key].src = resources[key];
+            }
+
         }
     },
     //Возращает процент загруженных ресурсов либо true если всё загружено
