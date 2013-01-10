@@ -9,11 +9,15 @@ var RESOURCE = {
     'background': 'tiles/background.jpg',
     'fog'  : 'tiles/fog.jpg',
 
-    'empty': 'tiles/empty.jpg',     //0 для пустых клеток
-    'wall' : 'tiles/wall.png',      //1
-    'grid' : 'tiles/grid.gif',      //2
+    'empty': 'tiles/empty.jpg',             //0 для пустых клеток
+    'wall' : 'tiles/wall.png',              //1
+    'grid' : 'tiles/grid.gif',              //2
+    'torch_off': 'tiles/torch_off.jpg',     //3
+    'torch_on': 'tiles/torch_on.jpg',
+    'door_close': 'tiles/door_close.jpg',   //4
+    'door_open': 'tiles/door_open.jpg',
 
-    'exit' : 'tiles/exit.jpg',      //9
+    'exit' : 'tiles/exit.jpg',              //9
     'exit_sound' : 'sound/exit.mp3',
 
     'player_up' : 'tiles/player_up.png',
@@ -51,6 +55,17 @@ function init()
     currentState = new GameState();
     //currentState.init();
     Engine.play();
+
+    //Догрузка недогруженных ресурсов 0_о
+    var interval = setInterval(function()
+    {
+        if(Engine.status != 'play' ){
+            console.log('use'); Resource.init(RESOURCE);
+        }
+        else {
+            clearInterval(interval);   console.log('clear');
+        }
+    },1000);
 
 }
 
@@ -91,11 +106,12 @@ function change_state()
 
 //Определяет ресур в точке на карте
 var TILE = [];
-    TILE[0] = 'empty';
-    TILE[1] = 'wall';
-    TILE[2] = 'grid';
-
-    TILE[9] = 'exit';
+TILE[0] = 'empty';
+TILE[1] = 'wall';
+TILE[2] = 'grid';
+TILE[3] = 'torch_off';
+TILE[4] = 'door_close';
+TILE[9] = 'exit';
 
 //Формируем игровой объект
 //  pass - возможность пройти через тайл
@@ -118,18 +134,42 @@ function Tile(elem)
     case 'grid':
         pass = false;
         break;
-    case 'torch':
+    case 'torch_off':
         interact = true;
         pass = false;
         trasparency = false;
+        this.toggle_on = function()
+        {
+            this.resourceId = 'torch_on';
+        }
+        this.tile_logic = function()
+        {
+            //Дальность свечения = 2
+            view(this.pos,3);
+        }
+        this.toggle_off = function()
+        {
+            view(this.pos,3,true);
+            this.resourceId = 'torch_off';
+        }
         break;
     case 'door_close':
         interact = true;
         pass = false;
         trasparency = false;
-        break;
-    case 'door_open':
-        interact = true;
+        this.toggle_on = function()
+        {
+            this.resourceId = 'door_open';
+            this.pass = true;
+            this.trasparency = true;
+        }
+        this.tile_logic = function(){}
+        this.toggle_off = function()
+        {
+            this.resourceId = 'door_close';
+            this.pass = false;
+            this.trasparency = false;
+        }
         break;
     }
     this.interact = interact;
@@ -141,6 +181,34 @@ function Tile(elem)
             Field.context.drawImage( Resource.resources[this.resourceId],
                                     (this.pos.x - Scene.camera.x) * Field.tile_size,
                                     (this.pos.y - Scene.camera.y) * Field.tile_size, Field.tile_size, Field.tile_size);
+        }
+    }
+
+    this.toggle_state = false;
+    if(interact){
+        this.toggle = function()
+        {
+            this.toggle_state = !this.toggle_state;
+            if(this.toggle_state){
+                //Включено
+                console.log('true');
+                this.toggle_on();
+            }
+            else {
+                //Отключено
+                console.log('false');
+                this.toggle_off();
+            }
+        }
+    }
+    else {
+        console.log('Нет взаимодейтсвия c этим тайлом');
+    }
+
+    this.logic = function()
+    {
+        if(interact && this.toggle_state){
+            this.tile_logic();
         }
     }
 }
@@ -223,16 +291,6 @@ var object = new ObjectClass();
 
 function PlayerObject(pos)
 {
-    /*
-    this.resourceId = 'empty'; //Обязательное
-    this.pos = new Pos(pos.x, pos.y); //Обязательная глобальная позиция
-    this.draw = function()
-    {
-        Field.context.drawImage(Resource.resources[this.resourceId],
-                                (this.pos.x - Scene.camera.x) * Field.tile_size,
-                                (this.pos.y - Scene.camera.y) * Field.tile_size, Field.tile_size, Field.tile_size);
-    }
-    */
     this.pos = new Pos(pos.x, pos.y);
     this.viewDist = 1; //Дальность видимости
     this.direction = 'right';
@@ -258,11 +316,35 @@ function PlayerObject(pos)
     {   // вниз
         this.delta.add(0, 1);
         this.direction = 'down';
+
     }
 
-    this.interaction = function(){ // пробел
-        //Взаимодейтсвие с тайлом
-        
+    this.interaction = function()
+    {   //Взаимодейтсвие с тайлом
+        var check_pos = new Pos(this.pos.x,this.pos.y);
+        switch(this.direction){
+        case 'up':
+            check_pos.add(0, -1);
+            break;
+        case 'left':
+            check_pos.add(-1, 0);
+            break;
+        case 'right':
+            check_pos.add(1, 0);
+            break;
+        case 'down':
+            check_pos.add(0, 1);
+            break;
+        }
+        //Если возможно взаимодействие
+        //По направлению куда смотрим
+        if(Scene.tiles[check_pos.y][check_pos.x].interact){
+            Scene.tiles[check_pos.y][check_pos.x].toggle();
+        }
+        //В точке где стоим
+        if(Scene.tiles[this.pos.y][this.pos.x].interact){
+            Scene.tiles[this.pos.y][this.pos.x].toggle();
+        }
     }
 
     this.check_collision = function(obj)

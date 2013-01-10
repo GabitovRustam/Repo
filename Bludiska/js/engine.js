@@ -113,6 +113,7 @@ var Engine = {
             if (percent == true){
                 this.status = 'play';
                 set_next_state(STATE.INTRO)
+
             }
             else Field.render_load(percent);
             break;
@@ -185,9 +186,10 @@ var Field = {
             return false;
         }
         this.context = this.canvas.getContext("2d");
-
+        this.context.beginPath();
         this.context.fillStyle = "#DDD";
         this.context.fillRect(0,0,this.canvas.width,this.canvas.height);
+        this.context.closePath();
     },
 
     render_load : function(percent)
@@ -199,10 +201,15 @@ var Field = {
         var str = "Грузимся... "+percent+"%";
         this.context.strokeText(str,this.canvas.width/2,this.canvas.height/2);
         //Прогресс бар
-        //this.context.beginPath();
+        this.context.beginPath();
+        this.context.fillStyle = "#6D6";
         this.context.rect(this.canvas.width*0.25, this.canvas.height/2+50, percent/100 * this.canvas.width*0.5, this.canvas.height*0.10);
         this.context.fill();
+        this.context.closePath();
+        this.context.beginPath();
+        this.context.rect(this.canvas.width*0.25, this.canvas.height/2+50, this.canvas.width*0.5, this.canvas.height*0.10);
         this.context.stroke();
+        this.context.closePath();
     }
 }
 
@@ -219,58 +226,76 @@ function Pos(x, y)
 
 }
 
+
 //Храним картинки для тайлов
 var Resource = {
     resources : {},
     _preLoad : {},
     _preLoad_count : 0,
-    init : function(resources)
+    getSupport : function (audio)
     {
+            return !audio.canPlayType ? false :
+                audio.canPlayType('audio/ogg;')  ? '.ogg' :
+                audio.canPlayType('audio/mpeg;') ? '.mp3' : false;
+    },
+    init : function(res)
+    {
+        var resources = res;
         Engine.status = 'load';
         _pre_load = resources;
         _pre_load_count = sizeOf(resources);
-        var img = {};
+        var image = {};
         var sound = {};
+
+        //Параллельная загрузка
         for(key in resources){
-            if(resources[key].substr(0,5) == 'sound') {
+            //Определяем что за ресурс
+            if(resources[key].substr(0,5) == 'sound') { //Если ресурс - звук
                 if(document.location.hostname == "xoxo500.500mb.net"){
                     var arr = [];
                     arr = resources[key].split('.');
-                    resources[key] = document.location.href + arr[0] + '.jpg';
+                    resources[key] = arr[0] + '.ogg';
                 }
 
                 sound[key] = new Audio;
                 sound[key].key = key.toLowerCase();
                 sound[key].volume = 0.3;
+                //анология onload, только для Audio
                 sound[key].addEventListener('canplaythrough', function()
                 {
                     Resource.resources[this.key] = this;
                 } , false);
-                sound[key].src = resources[key];
-                sound[key].load();
+                //Проверяем поддержку звуков браузером
+                var codec = Resource.getSupport(sound[key]);
+                if(!codec)  alert('AudioNotSupported');
+                var arr = [];
+                //Устанавливаем поддерживаемый формат ogg или mp3
+                arr = resources[key].split('.');
+                sound[key].src = arr[0] + codec;
             }
-            else {
-                img[key] = new Image;
-                img[key].key = key.toLowerCase();
-                img[key].onload = function()
+            else { //Иначе ресурс - картинка
+                image[key] = new Image;
+                image[key].key = key.toLowerCase();
+                image[key].onload = function()
                 {
                     Resource.resources[this.key] = this;
                 }
-                img[key].src = resources[key];
+                image[key].src = resources[key];
             }
-
         }
+
     },
     //Возращает процент загруженных ресурсов либо true если всё загружено
     load_percent : function(){
         var count = sizeOf(this.resources)
-        //count = 3;
+        //count = 12;
         if(count < _pre_load_count){
             return Math.floor(count * 100 / _pre_load_count);
         }
         else return true;
     },
 }
+
 
 var Scene = {
     tiles : {},
