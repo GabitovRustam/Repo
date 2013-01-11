@@ -341,7 +341,8 @@ function PlayerObject(pos)
         if(Scene.tiles[check_pos.y][check_pos.x].interact){
             Scene.tiles[check_pos.y][check_pos.x].toggle();
         }
-        //В точке где стоим
+		else
+        //Иначе проверим объект в точке где стоим
         if(Scene.tiles[this.pos.y][this.pos.x].interact){
             Scene.tiles[this.pos.y][this.pos.x].toggle();
         }
