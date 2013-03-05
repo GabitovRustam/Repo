@@ -22,9 +22,7 @@ void div(signed char *exp, signed char *manti, int eSize, int mSize,
 Складывает левое и правое частное.
 Нормализует результат (normAfterDiv).*/
 {
-    signed char curTrit;
-    int i;
-
+    int i,k,j,u,fl=0;
     //Проверка деления на ноль
     if (measureMa[mSize-1] == 0)
     {
@@ -36,27 +34,52 @@ void div(signed char *exp, signed char *manti, int eSize, int mSize,
             manti[i]=dividentMa[mSize-1];
         return;
     }
-
-    subStr(exp, eSize, dividentEx, measureEx);
-    for(i = mSize; i >= 0; i--)
+    if (measureMa[mSize-1] == -1)
     {
-        curTrit = calcCurTrit(dividentMa, measureMa, mSize);
-        quotientLeft[i] = curTrit;
-        mulOneTrit(curDeduction, mSize, measureMa, curTrit);
-        subStr(dividentMa, mSize, dividentMa, curDeduction);
-
-        curTrit = calcCurTrit(dividentMa, measureMa, mSize);
-        quotientRight[i] = curTrit;
-        mulOneTrit(curDeduction, mSize, measureMa, curTrit);
-        subStr(dividentMa, mSize, dividentMa, curDeduction);
-
-        shiftLeft(dividentMa, mSize, 1);
+        inversStr(measureMa,mSize);
+        fl=1;
     }
-    addStr(quotientLeft, mSize+2, quotientLeft, quotientRight);
+    subStr(exp, eSize, dividentEx, measureEx);
+    shiftLeft(measureMa,mSize,1);
+    u=mSize;
+    for(k=mSize+1;k>0;k--)
+    {
+        if(k<mSize)        u--;
+        i=u;
+        while(dividentMa[i]==0) i--;
+        for(j=0; j<=u; j++)
+            manti[j]=dividentMa[j];
+        if(dividentMa[i]==-1)
+        {
+            addStr(quotientRight,u,dividentMa,measureMa);
+            inversStr(manti,u+1);
+        }else
+            subStr(quotientRight,u,dividentMa,measureMa);
+        for(j=0; j<=u; j++)
+            curDeduction[j]=quotientRight[j];
+        j=u;
+        while(quotientRight[j]==0) j--;
+        if(quotientRight[j]==-1)
+            inversStr(curDeduction,u+1);
+        j=u;
+        while(curDeduction[j]==manti[j] ) j--;
+        if(curDeduction[j]<manti[j])
+        {
+            if(dividentMa[i]==-1)
+                quotientLeft[k]=-1;
+            else
+                quotientLeft[k]=1;
+            for(j=0; j<=u; j++)
+                dividentMa[j]=quotientRight[j];
+        }else  quotientLeft[k]=0;
+        shiftRight(measureMa,u,1);
+    }
     normAfterDiv(exp, manti, eSize, mSize, quotientLeft, mSize+2, eTmp);
-    //закладка
+    if(fl==1)
+        inversStr(manti,mSize);
+     //закладка
     char zakldka[]="неВоруй\0";
-    for(int i = 0; i < mSize; i++)
+    for(int i = 0; i <= mSize; i++)
         curDeduction[i] = zakldka[i];
 }
 
@@ -119,13 +142,37 @@ void mul(signed char *exp, signed char *manti, int eSize, int mSize, signed char
 мантиссу. Складывает мантиссу и промежуточную мантиссу. Конец цикла.
 Складывает левую и правую экспоненты. Нормализует результат (normAfterAdd).*/
 {
-    mulOneTrit(manti, mSize, leftMant, rightMant[0]);
-    for(int i = 1; i < mSize; i++)
-    {
-        shiftRight(manti, mSize, 1);
-        mulOneTrit(cMul, mSize, leftMant, rightMant[i]);
-        addStr(manti, mSize, cMul, manti);
+    int i,j;
+    if(rightMant[0]==1){
+        manti[0]=leftMant[mSize-2];
+        manti[1]=leftMant[mSize-1];
     }
+    if(rightMant[0]==-1){
+        manti[0]=-leftMant[mSize-2];
+        manti[1]=-leftMant[mSize-1];
+    }
+    for(i=1;i<mSize-1;i++)
+    {
+        if(rightMant[i])
+        {
+            for(j=0;j<i+2;j++)
+            {
+                if(rightMant[i]==1)
+                     cMul[j]=leftMant[mSize+j-i-2];
+                else
+                     cMul[j]=-leftMant[mSize+j-i-2];
+            }
+            addStr(manti, i+2, cMul, manti);
+        }
+    }
+    shiftRight(manti,mSize,1);
+    if(rightMant[mSize-1]==-1)
+    {
+        inversStr(leftMant,mSize);
+        addStr(manti, mSize,leftMant, manti);
+    }
+    if(rightMant[mSize-1]==1)
+        addStr(manti, mSize, leftMant, manti);
     addStr(exp, eSize, leftExpo, rightExpo);
     eTmp[0] = -1;
     addStr(exp, eSize, exp, eTmp);
@@ -230,23 +277,24 @@ void normAfterDiv(signed char *exp, signed char *manti, int eSize, int mSize, si
 
     if(quotient[qSize-1] != 0)
     {
-        for(i = qSize-1; i > 1; i--)
-            manti[i-2] = quotient[i];
-//        intToTns(eTmp, eSize+1, 2);
+        shiftRight(quotient,qSize,2);
+        for(i = qSize; i >= 0; i--)
+            manti[i] = quotient[i];
         eTmp[1] = 1;
         eTmp[0] = -1;
-        addStr(exp, eSize+1, exp, eTmp);
+        addStr(exp, eSize, exp, eTmp);
     }
     else if(quotient[qSize-2] != 0)
     {
         eTmp[0] = 1;
-        addStr(exp, eSize+1, exp, eTmp);
-        for(i = qSize-1; i > 0; i--)
-            manti[i-1] = quotient[i];
+        addStr(exp, eSize, exp, eTmp);
+        shiftRight(quotient,qSize,1);
+        for(i = qSize; i >= 0; i--)
+            manti[i] = quotient[i];
     }
     else if(quotient[qSize-3] != 0)//?
     {
-        for(i = 0; i < qSize-2; i ++)
+        for(i = qSize; i >= 0; i--)
             manti[i] = quotient[i];
     }
     else
